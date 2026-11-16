@@ -17,14 +17,19 @@
 
 Starter này **không chạy độc lập**: nó chỉ có `src/lab9/`, docs và workflow. Code agent, dữ liệu và `requirements.txt` nằm trong repo Lab 8 của nhóm.
 
+**Không cần hoàn thiện Lab 8.** M0–M4 (baseline, gate, `fixed`, `seeded_regression`) đều chạy trên shape `swarm`, tức `lab8/shapes/swarm_reference.py` do giảng viên cung cấp, không dùng `workflow`/`single`/`orchestrator` của nhóm. Repo Lab 8 còn TODO vẫn làm được Lab 9, miễn là package `src/lab8/` còn nguyên.
+
+**Lab 8 bị khóa, trace cố định.** Không sửa file nào trong `src/lab8/` (trừ 10 điểm). Trace không commit sẵn: `lab9.eval` chạy lại agent bằng MockLLM trên 14 item × 5 seed cố định, nên chạy lần nào cũng ra cùng một trace. Việc của bạn là eval và phân tích dựa trên trace đó: taxonomy, judge calibration, grader, bootstrap gate.
+
 ```bash
-# 1. Ở thư mục chứa repo Lab 8 của nhóm (bản đã nộp Day 8)
+# 1. Ở thư mục chứa repo Lab 8 của nhóm (bản nào cũng được, kể cả chưa xong)
 git clone https://github.com/VinUni-AI20k/K5-Day9-Evaluation-and-Failure-Analysis lab9-starter
 cd <repo-lab8-cua-nhom>
 git switch -c starter/d09
 
 # 2. Chép đúng 3 thư mục. KHÔNG chép README/CHECKPOINTS/RUBRIC/SUBMISSION/.gitignore ở gốc:
 #    các file đó trùng tên với Lab 8; đọc chúng ngay trong lab9-starter.
+#    Chép nhầm .gitignore sẽ mất dòng chặn .env và src/eval/instructor/ của Lab 8.
 cp -R ../lab9-starter/src/. src/
 cp -R ../lab9-starter/docs/. docs/
 cp -R ../lab9-starter/.github/. .github/     # thêm eval-gate.yml, giữ ci.yml của Lab 8

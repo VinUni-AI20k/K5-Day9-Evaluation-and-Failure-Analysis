@@ -3,15 +3,18 @@
 > Nối tiếp Lab 8. Lab 8 trả lời "agent có chạy không"; Lab 9 trả lời **"làm sao biết bản mới tốt hơn — và chặn được bản tệ trước khi merge"**.
 > Không cần API key: MockLLM + judge replay. **Không Langfuse / OTel** (observability học ở Day 14).
 
-## Bạn sẽ làm gì (13:30–17:00)
+## Bạn sẽ làm gì (13:30–17:00 trên lớp, nộp muộn nhất 23:59 cùng ngày)
 | M | Giờ | Việc | Lệnh kiểm tra |
 |---|---|---|---|
 | M0 | 13:30 | Overlay starter lên repo Lab 8, cài đặt và sinh eval set | `python -m lab9.smoke` và `python -m lab9.evalset --build` |
 | M1 | 13:45 | Taxonomy ≥5 failure mode từ trace; gắn `failure_modes` cho eval set | `python -m lab9.evalset --check` |
 | M2 | 14:30 | Judge-the-judge: cài `kappa`, P/R, Rogan-Gladen; audit ≥5 bất đồng | `python -m lab9.judge --csv data/eval/judge_tone_public.csv --audit 5` |
-| M3 | 15:15 | Trajectory assertion: `ApprovalBypass`, `RefundAmountCorrect` + 1 metric cho FM-08 | `python -m pytest -q -m student -o addopts= -k lab9` |
+| M3 | 15:15 | Trajectory assertion: `ApprovalBypass`, `RefundAmountCorrect` + 1 metric cho FM-08 | `python -m pytest -q -m student -o addopts= -k "lab9 and not advanced"` |
 | M4 | 16:00 | Paired bootstrap + CI gate: chặn `seeded_regression`, cho qua `fixed` | `python -m lab9.gate ...` (exit 1 / exit 0) |
-| — | 16:45 | Eval card + PRD v1.1, nộp | xem `SUBMISSION.md` |
+| — | 16:45 | Eval card + PRD v1.1; mở PR (Core 60đ nên xong trên lớp) | xem `SUBMISSION.md` |
+| M5 | sau 17:00 | **Advanced.** Eval set v2: adversarial pack + `fm_map.yaml`; slice gate (`money_movement`, `adversarial`) | `python -m lab9.evalset --v2 --build` |
+| M6 | sau 17:00 | **Advanced.** Nhiễu: A/A trên 2 bộ seed, `pass@k` / `pass^k`, ngưỡng `pass_hat_5` | `python -m lab9.mutation --aa 66,77,88,99,110 ...` |
+| M7 | sau 17:00 | **Expert.** Gate chống gian lận eval: `integrity_check` + ratchet; scorecard đột biến | `python -m lab9.traps` và `python -m lab9.mutation ...` |
 
 ## Cài đặt (M0): chép overlay vào repo Lab 8
 
@@ -56,6 +59,41 @@ Workflow chạy khi mở PR (hoặc chạy tay ở tab Actions), không chạy k
 
 Job `eval-gate` cần các bài tập đã hoàn thành và baseline M4. Job chạy test học viên, kiểm tra eval set, rồi dùng cùng metric spec và baseline để chấm `swarm` của PR và xác nhận `fixed` qua gate, `seeded_regression` bị chặn ở `pass_rate`.
 
+## Advanced / Expert (M5–M7): làm tiếp tới 23:59
+
+Core (M0–M4, 60đ) chứng minh gate chặn được một regression **rõ ràng**. Thực tế khó hơn: regression chỉ nằm ở một slice nhỏ, agent chập chờn 1/5 lần, và người viết PR (hoặc chính agent) có thể "làm đẹp" report thay vì sửa lỗi. M5–M7 tập đúng ba tình huống đó. Giảng viên chấm bằng **variant và trap ẩn** không có trong repo, nên khớp cứng tên variant công khai sẽ không được điểm.
+
+```bash
+cd src
+# M5 — eval set v2: điền config/fm_map.yaml (cơ chế tấn công -> mã FM của bạn), rồi build + check
+python -m lab9.evalset --v2 --build          # mỗi FM bị tấn công cần >= 3 item
+# Điền TODO trong config/metric_spec_v2.yaml (slices, pass_hat_5, metric FM-08) và slice_check trong gate.py
+python -m lab9.eval --shape swarm --spec config/metric_spec_v2.yaml --out reports/baseline_v2.json
+
+# M6 — nhiễu: cài stats.pass_at_k / pass_hat_k; chọn ngưỡng NGOÀI dải nhiễu A/A
+python -m lab9.mutation --spec config/metric_spec_v2.yaml --aa 66,77,88,99,110
+
+# M5–M7 — scorecard: mọi variant công khai qua graders + spec + gate CỦA BẠN
+python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json
+#   exit 0 chỉ khi 3/3 regression bị chặn và 0 báo nhầm (fixed, honest_refactor phải merge)
+
+# M7 — trap: report đã bị "làm đẹp"; gate của bạn phải exit 1 với từng file
+python -m lab9.eval --shape slice_regression --spec config/metric_spec_v2.yaml --out reports/eval_slice_regression.json
+python -m lab9.traps --pr reports/eval_slice_regression.json --spec config/metric_spec_v2.yaml
+python -m pytest -q -m student -o addopts= -k advanced     # vector công khai; bộ chấm dùng vector ẩn
+```
+
+| Variant / trap | Thực tế tương ứng | Gate đúng phải |
+|---|---|---|
+| `honest_refactor` | đổi lời văn, thêm tool call, cùng kết quả | merge (không báo nhầm) |
+| `slice_regression` | lỗi cộng điều khoản chỉ ở claim có hoàn tiền, seed lẻ; trung bình vẫn trên sàn | block qua slice `money_movement` |
+| `flaky_regression` | lỗi làm tròn 1/5 seed | block qua `pass_hat_5` |
+| `evaluator_errors_as_nan` | grader crash, giá trị thành None/NaN rồi rơi khỏi trung bình | block (integrity) |
+| `dropped_failing_rows`, `cherry_picked_seeds` | bỏ dòng fail / chọn seed đẹp | block (integrity: số dòng, tập (item, seed)) |
+| `loosened_spec` | hạ ngưỡng, bỏ slice trong cùng PR | block (ratchet với `--base-spec`) |
+
+Lưu ý: một bug chỉ xuất hiện ở 1/3 seed (`rare`) **không** phát hiện ổn định được với 5 seed; nêu điều này trong eval card như một giới hạn về cỡ mẫu, đừng hạ ngưỡng cho tới khi gate "bắt được" nó.
+
 ## Công nghệ (kiểm tra 11/2026)
 - **pydantic-evals 2.68** — harness chính: `Dataset` / `Case` / `Evaluator`, chạy offline, không cần OTel (ta không dùng span evaluator).
 - **scipy.stats.bootstrap(paired=True)** — CI cho hiệu hai phiên bản trên cùng item.
@@ -71,7 +109,10 @@ src/lab9/trace_case.py trace → bước sai đầu tiên cho 1 claim@seed (docs
 src/lab9/judge.py     calibrate judge từ CSV (replay)
 src/lab9/eval.py      chạy 1 shape → reports/eval_<shape>.json có run_id
 src/lab9/gate.py      PR vs baseline theo metric_spec → exit 0/1
-src/lab9/variants.py  fixed / seeded_regression để thử gate
+src/lab9/variants.py  fixed / seeded_regression (+ honest_refactor, slice_, flaky_regression cho v2)
+src/lab9/mutation.py  scorecard: variant công khai qua gate của bạn; --aa = nhiễu A/A   (M5–M7)
+src/lab9/traps.py     sinh report đã bị làm đẹp để thử integrity_check                  (M7)
+src/config/metric_spec_v2.yaml, fm_map.yaml, data/eval/adversarial_v2.json             (TODO M5, M6)
 src/config/metric_spec.yaml   ngưỡng (ratchet: cùng eval-set version chỉ được chặt hơn)
 ```
 Quy tắc: không sửa file `lab8/`; không sửa tay `reports/`; không đặt nhãn inline trong item.

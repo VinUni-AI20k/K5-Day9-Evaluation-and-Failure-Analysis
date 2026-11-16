@@ -18,9 +18,42 @@ from lab9 import stats
 from lab9.eval import SPEC, load_spec, per_item
 
 
-def check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]:
+def integrity_check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> list[str]:
+    """M7 (Expert): refuse to compare reports that cannot be trusted. Return a list of problems
+    (empty = trustworthy). A gate that passes a broken report is worse than no gate.
+    Must catch at least:
+      - any metric value in pr["metrics"] that is NaN or inf
+      - len(pr["rows"]) != manifest items x len(manifest seeds)   (dropped / duplicated rows)
+      - the (item_id, seed) set of PR differs from the baseline's (cherry-picked seeds/items)
+      - pr["evaluator_failures"] non-empty, or a row whose value for a graded spec metric is
+        None (a crashed grader silently scores as "missing" and drops out of the mean)
+      - base_spec given and a threshold in spec is LOOSER than in base_spec for the same
+        eval-set version (ratchet: max may not rise, min may not fall, a blocking metric may
+        not become non-blocking, a metric may not disappear; the same for spec["slices"],
+        including dropping no_significant_drop)
+      - an item's slice tags in PR rows differ from the baseline's (relabelling an item out of a
+        slice hides its regression from the slice gate)"""
+    # TODO M7
+    return []
+
+
+def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]:
+    """M5 (Advanced): an average can hide a regression on a small, important slice.
+    For each entry of spec["slices"] ({"name", "metric", "min"?, "no_significant_drop"?, "blocking"}):
+      - value = mean of per_item(pr, metric, slice_name=name)
+      - fail if below "min", or if no_significant_drop and the paired CI over the slice's items
+        lies entirely below 0
+    Return (blocked ids like "slice:money_movement/pass_rate", report lines)."""
+    # TODO M5
+    return [], []
+
+
+def check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> tuple[list[str], list[str]]:
     if pr["manifest"]["eval_set_sha"] != base["manifest"]["eval_set_sha"]:
         return ["eval set differs from baseline: re-run baseline on the same eval set"], []
+    problems = integrity_check(pr, base, spec, base_spec)
+    if problems:
+        return ["integrity"], [f"  INTEGRITY {p}" for p in problems]
     blocked, lines = [], []
     bs = spec.get("bootstrap", {})
     for m in spec["metrics"]:
@@ -47,6 +80,10 @@ def check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]:
             blocked.append(mid)
         label = {"ok": "ok", "missing": "MISSING"}.get(verdict, "BLOCK" if m.get("blocking") else "warn")
         lines.append(f"  {mid:<22} {val!s:<8} {json.dumps(th):<40} {note:<28} {label}")
+    if spec.get("slices"):
+        sb, sl = slice_check(pr, base, spec)
+        blocked += sb
+        lines += sl
     return blocked, lines
 
 
@@ -56,10 +93,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pr", required=True)
     ap.add_argument("--baseline", required=True)
     ap.add_argument("--spec", default=str(SPEC))
+    ap.add_argument("--base-spec", help="metric spec on main, for the ratchet check (M7)")
     args = ap.parse_args(argv)
     pr = json.loads(Path(args.pr).read_text(encoding="utf-8"))
     base = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
-    blocked, lines = check(pr, base, load_spec(Path(args.spec)))
+    base_spec = load_spec(Path(args.base_spec)) if args.base_spec else None
+    blocked, lines = check(pr, base, load_spec(Path(args.spec)), base_spec)
     print(f"gate: PR {pr['run_id']} vs main {base['run_id']} · eval set {pr['manifest']['eval_set_sha']}")
     print("\n".join(lines))
     if blocked:

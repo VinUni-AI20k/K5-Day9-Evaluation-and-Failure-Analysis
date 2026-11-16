@@ -43,3 +43,18 @@ def paired_bootstrap(a: Sequence[float], b: Sequence[float], *, n_resamples: int
     rng=numpy.random.default_rng(rng)). If a == b everywhere return (0.0, 0.0, 0.0)."""
     # TODO M4
     raise NotImplementedError
+
+
+def pass_at_k(n: int, c: int, k: int) -> float:
+    """Probability that AT LEAST ONE of k trials drawn from n (c of them passing) passes.
+    Unbiased estimator (Chen et al. 2021): 1 - C(n-c, k) / C(n, k). Raise ValueError if k > n."""
+    # TODO M6
+    raise NotImplementedError
+
+
+def pass_hat_k(n: int, c: int, k: int) -> float:
+    """pass^k (tau-bench, Yao et al. 2024): probability that ALL k trials drawn from n pass.
+    Unbiased estimator: C(c, k) / C(n, k). Raise ValueError if k > n.
+    pass^k <= pass@1 <= pass@k; a reliable agent keeps pass^k close to pass@1."""
+    # TODO M6
+    raise NotImplementedError

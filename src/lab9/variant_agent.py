@@ -2,7 +2,7 @@
 
 - `ref`  : giống swarm_reference từng bước (kể cả điểm yếu seed % 5 == 0), thêm event `reply`.
 - `fixed`: như `ref` nhưng không bao giờ tin số ngày trong ticket (bản "fix").
-- Các biến thể còn lại gài ĐÚNG MỘT failure mode (xem demo9/variants.py).
+- Các biến thể còn lại gài ĐÚNG MỘT failure mode (xem lab9/variants.py).
 
 Không sửa thước đo: mọi biến thể chạy qua host của Lab 8 (lab8.durability.issue_refund)
 và được chấm bằng lab8.metrics.trial_pass / lab8.benchmark.run_benchmark như shape thật.
@@ -39,7 +39,13 @@ BUGS = {
     "misreport",        # FM-08: reply báo số mình đề xuất, không phải số host đã ghi
     "paraphrase",       # không phải lỗi: câu trả lời diễn đạt khác (cho DEMO 3)
     "extra_lookup",     # không phải lỗi: đọc thêm lịch sử hoàn tiền (đường đi khác, kết quả đúng)
+    "quiet_override",   # FM-03 không để lại dấu: tin ticket nhưng KHÔNG ghi event model_override
+    "round_down",       # FM-04 nhỏ: làm tròn đề xuất xuống bội số 10.000đ (35.000 -> 30.000)
+    "intermittent",     # bộ điều biến: mọi lỗi khác chỉ bật ở seed lẻ (lỗi lúc có lúc không)
+    "rare",             # bộ điều biến: mọi lỗi khác chỉ bật khi seed chia hết cho 3 (1/5 seed)
 }
+# Công tắc không phải lỗi: không bị "intermittent"/"rare" điều biến.
+BENIGN = {"no_override", "paraphrase", "extra_lookup", "intermittent", "rare"}
 
 CLAUSE_RE = re.compile(r"\b([A-Z]{2,}(?:-[A-Z0-9]+)+)\b")
 
@@ -62,7 +68,7 @@ def make_shape(name: str, bugs: frozenset[str] | set[str] = frozenset()) -> Call
             conn.close()
 
     run_claim.__name__ = f"run_claim_{name}"
-    run_claim.__doc__ = f"demo9 shape {name!r}, bugs={sorted(bugs)}"
+    run_claim.__doc__ = f"lab9 shape {name!r}, bugs={sorted(bugs)}"
     return run_claim
 
 
@@ -92,6 +98,8 @@ def _run(conn: sqlite3.Connection, name: str, bugs: frozenset[str], claim_id: st
          seed: int, crash_at: str | None) -> RunResult:
     budget = Budget()
     trace = Trace(make_run_id(name, claim_id, seed))
+    flaky_off = ("intermittent" in bugs and seed % 2 == 0) or ("rare" in bugs and seed % 3 != 0)
+    bugs = frozenset(b for b in bugs if b in BENIGN or not flaky_off)
     budget.add_tool(tool_cost())
     if "leaky_trace" in bugs:
         row = conn.execute("SELECT * FROM claims WHERE claim_id = ?", (claim_id,)).fetchone()
@@ -133,10 +141,12 @@ def _run(conn: sqlite3.Connection, name: str, bugs: frozenset[str], claim_id: st
 
     order = dict(order_view["order"])
     db_delay = int(order["delay_days"])
-    trusts_ticket = "ticket_trust" in bugs or ("no_override" not in bugs and seed % 5 == 0)
+    trusts_ticket = ("ticket_trust" in bugs or "quiet_override" in bugs
+                     or ("no_override" not in bugs and seed % 5 == 0))
     if parsed_delay is not None and parsed_delay != db_delay and trusts_ticket:
         order["delay_days"] = parsed_delay
-        trace.add("model_override", {"delay_days": parsed_delay})
+        if "quiet_override" not in bugs:                      # quiet_override: cùng lỗi, không để lại event
+            trace.add("model_override", {"delay_days": parsed_delay})
 
     quote_payload: dict[str, Any] = investigated["tools"]["compute_compensation"]
     if order["delay_days"] != db_delay:
@@ -158,6 +168,8 @@ def _run(conn: sqlite3.Connection, name: str, bugs: frozenset[str], claim_id: st
     proposal = int(quote_payload["amount_vnd"])
     if "sum_parts" in bugs and quote_payload.get("parts"):
         proposal = sum(int(v) for v in quote_payload["parts"].values())   # FM-04: cộng thay vì max
+    if "round_down" in bugs:
+        proposal = proposal // 10000 * 10000                                # FM-04 nhỏ: lệch vài nghìn đồng
     trace.add("quote", quote_payload)
 
     if "pre_deducted" in bugs or "extra_lookup" in bugs:

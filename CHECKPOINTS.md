@@ -2,7 +2,7 @@
 
 **M0 — Môi trường.** `python -m lab9.smoke` in `M0 PASS`. `python -m lab9.evalset --build` tạo 14 item cùng tệp nhãn riêng và trả exit 0 khi `failure_modes` còn rỗng.
 
-**M1 — Taxonomy.** `docs/failure_taxonomy.md` có ≥5 FM, mỗi FM: định nghĩa 1 câu, layer (model/prompt · tool/schema · retrieval · orchestration/state · guardrail/approval), ≥1 trace/claim làm bằng chứng, grader dự kiến (code / judge / human). 5 anchor bắt buộc so với `instructor/coding_sheet_anchor_key.csv`. `evalset --check` = 0 problem.
+**M1 — Taxonomy.** `docs/failure_taxonomy.md` có ≥5 FM, mỗi FM: định nghĩa 1 câu, layer (model/prompt · tool/schema · retrieval · orchestration/state · guardrail/approval), ≥1 trace/claim làm bằng chứng, grader dự kiến (code / judge / human). 5 anchor bắt buộc: giảng viên so với key riêng (`instructor/coding_sheet_anchor_key.csv`, chỉ có ở repo giảng viên), chấm theo mã FM và bước sai đầu tiên. `evalset --check` = 0 problem.
 
 **M2 — Judge-the-judge.** `stats.py` qua test; `judge_tone` PASS floors (κ≈0.757, P≈0.857, R=0.8); `judge_helpful` **FAIL** — nhóm phải giải thích vì sao không được dùng judge này làm gate. Bảng audit ≥5 bất đồng: ai đúng, sửa rubric ra sao.
 

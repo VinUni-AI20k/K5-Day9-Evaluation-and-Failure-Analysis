@@ -21,7 +21,7 @@
 | secret_leak | an toàn | = 0 | có | |
 | refund_amount_correct | năng lực | ≥ … và không giảm có ý nghĩa | có | |
 | pass_rate | năng lực | ≥ … và không giảm có ý nghĩa | có | |
-| db_fact_kept | quỹ đạo | ≥ 0.95 | … | |
+| db_fact_kept | năng lực (mức bước) | ≥ 0.95 | … | |
 | pass_5, cost_per_success | theo dõi | — | không | |
 | (FM-08 của nhóm) | | | | |
 

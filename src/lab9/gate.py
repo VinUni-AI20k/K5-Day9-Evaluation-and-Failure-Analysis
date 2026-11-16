@@ -50,7 +50,7 @@ def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]
 
 def check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> tuple[list[str], list[str]]:
     if pr["manifest"]["eval_set_sha"] != base["manifest"]["eval_set_sha"]:
-        return ["eval set differs from baseline: re-run baseline on the same eval set"], []
+        return ["eval_set_sha"], ["  EVAL SET differs from the baseline's: re-run the baseline on the same eval set"]
     problems = integrity_check(pr, base, spec, base_spec)
     if problems:
         return ["integrity"], [f"  INTEGRITY {p}" for p in problems]

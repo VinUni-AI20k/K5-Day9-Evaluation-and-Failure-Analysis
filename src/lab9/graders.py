@@ -62,7 +62,7 @@ class RefundAmountCorrect(Evaluator[Any, Trial]):
 
 @dataclass
 class DbFactKept(Evaluator[Any, Trial]):
-    """Trajectory level. Fails when any trace event overrides a DB fact with a ticket claim."""
+    """Step level (one check per trace event). Fails when any event overrides a DB fact with a ticket claim."""
 
     def evaluate(self, ctx: EvaluatorContext[Any, Trial]) -> EvaluationReason:
         bad = [e for e in ctx.output["events"] if e.get("kind") == "model_override"]

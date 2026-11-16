@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,9 @@ MIN_PER_MODE_V2 = 3   # v2 rule: a failure mode with < 3 items cannot show a tre
 # Fields an item must carry. Labels never go inline: a grader that can read the
 # answer next to the input is a grader that can be fooled by it.
 REQUIRED = ("item_id", "claim_id", "failure_modes", "provenance", "split", "eval_set_version")
+
+
+FM_CODE = re.compile(r"FM-\d{2}")
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -115,6 +119,9 @@ def check(items_path: Path = ITEMS, labels_path: Path = LABELS) -> list[str]:
             problems.append(f"{item['item_id']}: failure_modes empty (fill from taxonomy)")
         problems += [f"{item['item_id']}: {fm} (fill config/fm_map.yaml)"
                      for fm in item.get("failure_modes") or [] if str(fm).startswith("UNMAPPED:")]
+        problems += [f"{item['item_id']}: {fm!r} is not a failure-mode code like FM-03"
+                     for fm in item.get("failure_modes") or []
+                     if not str(fm).startswith("UNMAPPED:") and not FM_CODE.fullmatch(str(fm))]
     ids = [it.get("item_id") for it in items]
     problems += [f"{i}: duplicate item_id" for i in sorted({i for i in ids if ids.count(i) > 1})]
     cids = [it.get("claim_id") for it in items]

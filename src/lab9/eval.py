@@ -167,15 +167,16 @@ def main(argv: list[str] | None = None) -> int:
     seeds = [int(x) for x in args.seeds.split(",")] if args.seeds else None
     rep = run_eval(args.shape, spec, seeds)
     out = Path(args.out or f"reports/eval_{args.shape}.json")
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
     m = rep["manifest"]
     print(f"{rep['run_id']} · eval set {m['eval_set_sha']} · {m['items']} item × {len(m['seeds'])} seed · {m['llm']}")
     for k, v in rep["metrics"].items():
         print(f"  {k:<22} {v}")
     if rep["evaluator_failures"]:
         print(f"  {len(rep['evaluator_failures'])} evaluator failure(s), first: {rep['evaluator_failures'][0]}")
+        print(f"  not writing {out}: a report with broken graders must not become a baseline")
         return 2
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"wrote {out}")
     return 0
 

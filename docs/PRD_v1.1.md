@@ -36,7 +36,7 @@
 Quy tắc: tiền và phê duyệt luôn chấm bằng code. Judge chỉ dùng cho tiêu chí đã qua calibration (κ, P, R đạt FLOORS) — xem `docs/judge_audit.md`.
 
 ## 5. Cổng release
-- Lệnh: `python -m lab9.gate --pr reports/eval_<shape>.json --base reports/baseline_v1.json`
+- Lệnh: `python -m lab9.gate --pr reports/eval_<shape>.json --baseline reports/baseline_v1.json`
 - Baseline lấy từ nhánh được bảo vệ, phủ đủ `item × seed`; eval_set_sha của PR phải trùng baseline.
 - Gate exit 1 → **không merge**. Người xử lý: … (tên/vai trò). Ngoại lệ (waiver) cần: … duyệt, ghi lý do vào PR.
 

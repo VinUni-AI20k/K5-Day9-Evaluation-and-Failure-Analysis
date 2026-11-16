@@ -2,8 +2,11 @@
 engineer could hand the gate to turn a red build green. Your integrity_check must make the gate
 exit 1 on every one of them. The instructor grades with more traps than this file builds.
 
-    python -m lab9.traps --pr reports/eval_flaky_regression.json --spec config/metric_spec.yaml
-    # then, for each trap printed:  python -m lab9.gate --pr <trap> --baseline ... [--spec/--base-spec ...]
+    python -m lab9.traps --pr reports/eval_slice_regression.json --baseline reports/baseline_v2.json \
+        --spec config/metric_spec_v2.yaml
+
+Builds every trap, runs the gate on each one, and exits 1 if any trap gets through (exit 0 only
+when the gate blocks them all). The trap files stay in reports/traps/ for re-running one by hand.
 """
 from __future__ import annotations
 
@@ -76,24 +79,38 @@ def build(pr: dict[str, Any], spec: dict[str, Any]) -> dict[str, tuple[dict, dic
 
 
 def main(argv: list[str] | None = None) -> int:
+    from lab9 import gate
     ap = argparse.ArgumentParser(prog="lab9.traps")
     ap.add_argument("--pr", required=True, help="a report the gate correctly blocks")
+    ap.add_argument("--baseline", required=True, help="the baseline the gate compares against")
     ap.add_argument("--spec", default=str(SPEC))
     ap.add_argument("--out", default="reports/traps")
     args = ap.parse_args(argv)
     spec = load_spec(Path(args.spec))
     pr = json.loads(Path(args.pr).read_text(encoding="utf-8"))
+    base = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    leaked = []
     for name, (rep, sp) in build(pr, spec).items():
         p = out / f"{name}.json"
         p.write_text(json.dumps(rep, ensure_ascii=False, allow_nan=True), encoding="utf-8")
-        line = f"--pr {p}"
+        line = f"--pr {p} --baseline {args.baseline}"
         if sp is not None:
             sp_path = out / f"{name}.spec.yaml"
             sp_path.write_text(yaml.safe_dump(sp, allow_unicode=True, sort_keys=False), encoding="utf-8")
             line += f" --spec {sp_path} --base-spec {args.spec}"
-        print(f"trap {name:<22} python -m lab9.gate {line} --baseline <baseline>   # must exit 1")
+        else:
+            line += f" --spec {args.spec}"
+        blocked, _ = gate.check(rep, base, sp if sp is not None else spec, spec if sp is not None else None)
+        verdict = "blocked" if blocked else "LEAKED "
+        if not blocked:
+            leaked.append(name)
+        print(f"trap {name:<24} {verdict}  python -m lab9.gate {line}")
+    if leaked:
+        print(f"exit 1 — {len(leaked)} trap(s) got through the gate: {', '.join(leaked)}")
+        return 1
+    print("exit 0 — the gate blocked every public trap (the instructor runs more)")
     return 0
 
 

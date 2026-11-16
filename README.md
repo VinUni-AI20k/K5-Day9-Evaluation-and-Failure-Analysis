@@ -37,9 +37,9 @@ cp -R ../lab9-starter/src/. src/
 cp -R ../lab9-starter/docs/. docs/
 cp -R ../lab9-starter/.github/. .github/     # thêm eval-gate.yml, giữ ci.yml của Lab 8
 
-# 3. Cài và kiểm tra (Python ≥ 3.11; dùng venv hoặc `uv venv && uv pip install ...`)
+# 3. Cài và kiểm tra (Python ≥ 3.11). Với uv: `uv venv && source .venv/bin/activate` trước
 cd src
-python -m pip install -r requirements.txt -r requirements-lab9.txt
+uv pip install -r requirements.txt -r requirements-lab9.txt   # không dùng uv: python -m pip install ...
 python -m lab9.smoke
 python -m lab9.evalset --build          # sinh eval_set_v1.jsonl + labels_v1.json (nhãn TÁCH khỏi item)
 cd .. && git add -A && git commit -m "chore: add lab9 overlay"
@@ -77,9 +77,10 @@ python -m lab9.mutation --spec config/metric_spec_v2.yaml --aa 66,77,88,99,110
 python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json
 #   exit 0 chỉ khi 3/3 regression bị chặn và 0 báo nhầm (fixed, honest_refactor phải merge)
 
-# M7 — trap: report đã bị "làm đẹp"; gate của bạn phải exit 1 với từng file
+# M7 — trap: report đã bị "làm đẹp"; lệnh traps tự chạy gate trên từng file
 python -m lab9.eval --shape slice_regression --spec config/metric_spec_v2.yaml --out reports/eval_slice_regression.json
-python -m lab9.traps --pr reports/eval_slice_regression.json --spec config/metric_spec_v2.yaml
+python -m lab9.traps --pr reports/eval_slice_regression.json --baseline reports/baseline_v2.json --spec config/metric_spec_v2.yaml
+#   exit 0 chỉ khi gate chặn mọi trap; exit 1 = có trap lọt (tên in ở dòng cuối)
 python -m pytest -q -m student -o addopts= -k advanced     # vector công khai; bộ chấm dùng vector ẩn
 ```
 

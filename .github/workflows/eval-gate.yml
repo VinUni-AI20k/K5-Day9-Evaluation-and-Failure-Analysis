@@ -3,7 +3,19 @@ on: [pull_request, workflow_dispatch]
 permissions: {contents: read}
 concurrency: {group: "eval-gate-${{ github.ref }}", cancel-in-progress: true}
 jobs:
+  # The starter repo is an overlay without src/lab8; its CI only runs once copied into a Lab 8 repo.
+  detect:
+    runs-on: ubuntu-latest
+    outputs: {lab8: "${{ steps.has.outputs.lab8 }}"}
+    steps:
+      - uses: actions/checkout@v7
+        with: {persist-credentials: false}
+      - id: has
+        run: "test -d src/lab8 && echo lab8=1 >> \"$GITHUB_OUTPUT\" || echo skip, overlay without src/lab8"
+
   eval-gate:
+    needs: detect
+    if: needs.detect.outputs.lab8
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

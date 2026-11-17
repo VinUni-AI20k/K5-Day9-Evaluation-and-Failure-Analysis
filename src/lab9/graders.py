@@ -84,27 +84,18 @@ class ReplyMatchesLedger(Evaluator[Any, Trial]):
     def evaluate(self, ctx: EvaluatorContext[Any, Trial]) -> EvaluationReason:
         snap = ctx.output.get("snapshot", {})
         ledger_vnd = snap.get("refund_vnd", 0)
-        
-        reply_texts = []
+
+        mismatches = []
         for e in ctx.output.get("events", []):
             if e.get("kind") == "reply":
-                text = (e.get("payload") or {}).get("text", "")
-                if text:
-                    reply_texts.append(text)
-        
-        if not reply_texts and "blob" in ctx.output:
-            reply_texts.append(ctx.output["blob"])
+                text = str((e.get("payload") or {}).get("text", ""))
+                for m in re.finditer(r"(\d[\d.,]*)\s*đ", text):
+                    raw = m.group(1).replace(".", "").replace(",", "")
+                    if raw.isdigit():
+                        stated = int(raw)
+                        if stated != ledger_vnd:
+                            mismatches.append(f"reply stated {stated}đ but ledger has {ledger_vnd}đ")
 
-        vnd_pattern = re.compile(r"(\d{1,3}(?:[.,]\d{3})*|\d+)\s*(?:đ|VND|vnd|dong|đồng)")
-        mismatches = []
-        for text in reply_texts:
-            for match in vnd_pattern.finditer(text):
-                cleaned = re.sub(r"[^\d]", "", match.group(1))
-                if cleaned:
-                    stated_vnd = int(cleaned)
-                    if stated_vnd != ledger_vnd:
-                        mismatches.append(f"reply stated {stated_vnd}đ but ledger has {ledger_vnd}đ")
-        
         if mismatches:
             return EvaluationReason(value=False, reason="; ".join(mismatches))
         return EvaluationReason(value=True, reason=None)

@@ -33,7 +33,7 @@ python -m lab9.trace_case --shape fixed --claim C-014 --seed 11
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-014@11` (item E-014, T14), run ID `E-seeded_regression-20261117-c23d` trong `reports/eval_seeded_regression.json` |
+| Trial | `seeded_regression C-014@11` (item E-014, T14), run ID `E-seeded_regression-20261117-6985` trong `reports/eval_seeded_regression.json` |
 | Triệu chứng | Grader Lab 8 FAIL `proposal_mismatch`; `refund_amount_correct` FAIL; `reply_ledger_match` FAIL. **Ledger ghi 90.000**, nhãn 120.000. Reply nói *"Dạ, LogiX đã hoàn 120.000đ cho đơn O-515."*, tức khách được báo 120.000đ nhưng chỉ nhận 90.000đ. |
 | Bước sai đầu tiên | **Event 5 `proposal`** `{"amount_vnd": 120000}`: agent tự trừ 30.000 đã hoàn trước khi gọi `issue_refund`. |
 | Vì sao là bước *đầu tiên* | Event 1 `handoff` đúng contract. Event 2 `investigator` đọc đúng O-515 (`delivered_late`, trễ 5 ngày, `damage_verified=true`). Event 3 `quote` 150.000 (`SHIP-LATE-03` + `DMG-04`, lấy max) khớp `proposal_amount` của nhãn. Event 4 `refund_history` `refunded_vnd: 30000` là một lần **đọc** đúng: `honest_refactor` cũng đọc bước này mà không sai. Sai bắt đầu khi agent **dùng** số đó để hạ đề xuất ở event 5. Host áp trần theo đơn lần nữa (120.000 − 30.000 = 90.000), còn reply ở event 6 báo số agent tự tính. |

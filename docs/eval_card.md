@@ -2,8 +2,8 @@
 
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10. Mọi con số lấy từ report do `python -m lab9.eval` sinh ra, không gõ tay.
 
-- **Run ID / eval set SHA:** baseline `E-swarm-20261117-c23d` · PR mẫu `E-fixed-20261117-c23d`, `E-seeded_regression-20261117-c23d` · eval set `c23db0ff73d1`
-- **Phiên bản:** code nhánh `starter/d09` (commit chứa card này) · eval set v1 (sha `c23db0ff73d1`) · metric_spec `1.0` · grader `lab9.graders` (cùng commit) · seeds 11/22/33/44/55 · MockLLM · Python 3.14 (local) / 3.13 (CI)
+- **Run ID / eval set SHA:** baseline `E-swarm-20261117-6985` · PR mẫu `E-fixed-20261117-6985`, `E-seeded_regression-20261117-6985` · eval set `6985a3dc739a`
+- **Phiên bản:** code nhánh `starter/d09` (commit chứa card này) · eval set v1 (sha `6985a3dc739a`) · metric_spec `1.0` · grader `lab9.graders` (cùng commit) · seeds 11/22/33/44/55 · MockLLM · Python 3.14 (local) / 3.13 (CI)
 - **Eval set:** v1, 14 item × 5 seed = 70 trial, nguồn `lab8_public` (ma trận T01–T14). Nhãn nằm riêng trong `labels_v1.json`. Mỗi item có `failure_modes` (FM-01…FM-09) và `provenance.from_trace` (xem `docs/failure_taxonomy.md`). `python -m lab9.evalset --check` cho 0 problem.
 
 ## Metric & ngưỡng (`config/metric_spec.yaml`)
@@ -77,7 +77,7 @@ Cách đọc kết quả:
 
 ## v2 — adversarial pack, slice gate, pass^k, chống gian lận eval (M5–M7)
 
-- **Run ID / eval set:** baseline `E-swarm-20261117-2aee` · eval set v2 `2aee4016ac5d` (28 item = 14 v1 + 14 adversarial) · metric_spec `2.0` · seeds 11/22/33/44/55.
+- **Run ID / eval set:** baseline `E-swarm-20261117-2b51` · eval set v2 `2b5181f582fb` (28 item = 14 v1 + 14 adversarial) · metric_spec `2.0` · seeds 11/22/33/44/55.
 - **Eval set v2:**
   - Lệnh `python -m lab9.evalset --v2 --build` cho 0 problem.
   - `config/fm_map.yaml` ánh xạ 8 cơ chế tấn công: `ticket_over_db`→FM-03, `stale_policy`→FM-06, `clause_sum`→FM-04, `double_deduct`→FM-05, `sibling_refund`→FM-07, `denied_ignored`→FM-02, `reply_ledger_mismatch`→FM-08, `cross_principal`→FM-09.

@@ -25,6 +25,7 @@ import yaml
 from pydantic_evals import Case, Dataset
 
 from lab8.benchmark import prepare_from_memory, run_trial
+from lab8.config_loader import repo_path
 from lab8.console import utf8_stdio
 from lab8.db import connect, load_json, load_jsonl
 from lab8.metrics import artifact_blob, ledger_snapshot, trial_pass, unexpected_ledger_rows
@@ -32,7 +33,8 @@ from lab9 import evalset, stats, variants
 from lab9.graders import GRADERS
 
 SPEC = Path("config/metric_spec.yaml")
-WORLD = Path("data/public_world_state.json")
+WORLD = repo_path("data", "public_world_state.json")
+PUBLIC_CLAIMS = repo_path("data", "public_claims.jsonl")
 
 
 def load_spec(path: Path = SPEC) -> dict[str, Any]:
@@ -69,7 +71,7 @@ def load_world(spec: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any
     """Lab 8 world + public claims, plus the adversarial pack when the spec names one (v2).
     The pack only ADDS claims and approvals in memory; no Lab 8 file is touched."""
     world = load_json(WORLD)
-    claims = load_jsonl(Path("data/public_claims.jsonl"))
+    claims = load_jsonl(PUBLIC_CLAIMS)
     if spec.get("adversarial_pack"):
         pack = json.loads(Path(spec["adversarial_pack"]).read_text(encoding="utf-8"))
         world = {**world, "approvals": [*world["approvals"], *pack["approvals"]]}

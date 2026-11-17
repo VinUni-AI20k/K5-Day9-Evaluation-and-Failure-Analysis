@@ -63,6 +63,51 @@ def test_integrity_flags_loosened_spec():
     assert gate.integrity_check(base, base, SPEC, SPEC) == []
 
 
+def test_integrity_flags_duplicate_rows_relabelled_slices_and_missing_metrics():
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    duplicate = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    duplicate["rows"].append(copy.deepcopy(duplicate["rows"][0]))
+    assert any("duplicate" in problem for problem in gate.integrity_check(duplicate, base, SPEC))
+
+    relabelled_rows = copy.deepcopy(ROWS)
+    relabelled_rows[0]["slices"] = []
+    relabelled = _report(relabelled_rows, {"pass_rate": 1.0})
+    assert any("slice tags differ" in problem for problem in gate.integrity_check(relabelled, base, SPEC))
+
+    missing_rows = copy.deepcopy(ROWS)
+    missing_rows[0]["pass_rate"] = None
+    missing = _report(missing_rows, {"pass_rate": 1.0})
+    assert any("missing graded metric" in problem for problem in gate.integrity_check(missing, base, SPEC))
+
+
+def test_integrity_recomputes_report_metrics_from_rows():
+    from lab9 import gate
+    from lab9.eval import aggregate
+
+    rows = copy.deepcopy(ROWS)
+    for row in rows:
+        row["cost"] = 1.0
+    report = _report(rows, aggregate(rows, ["pass_rate"]))
+    report["run_id"] = "E-test"
+    base = copy.deepcopy(report)
+    report["metrics"]["pass_rate"] = 0.1
+    assert any("aggregate metric pass_rate disagrees" in problem
+               for problem in gate.integrity_check(report, base, SPEC))
+
+
+def test_ratchet_cannot_remove_a_slice():
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    old_spec = dict(SPEC, slices=[{"name": "denial", "metric": "pass_rate", "min": 0.9,
+                                   "no_significant_drop": True, "blocking": True}])
+    new_spec = copy.deepcopy(SPEC)
+    assert any("ratchet removed slice denial" in problem
+               for problem in gate.integrity_check(base, base, new_spec, old_spec))
+
+
 def test_slice_check_blocks_a_slice_below_floor():
     from lab9 import gate
 

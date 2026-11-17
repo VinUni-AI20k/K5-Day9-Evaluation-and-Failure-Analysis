@@ -49,3 +49,12 @@ def test_paired_bootstrap_reference(stats):
 
 def test_paired_bootstrap_identical_is_zero(stats):
     assert stats.paired_bootstrap([1, 0, 1], [1, 0, 1]) == (0.0, 0.0, 0.0)
+
+
+def test_stats_reject_misaligned_samples_and_uninformative_judges(stats):
+    with pytest.raises(ValueError):
+        stats.confusion(["PASS"], [])
+    with pytest.raises(ValueError):
+        stats.paired_bootstrap([1.0, 0.0], [1.0])
+    with pytest.raises(ValueError):
+        stats.rogan_gladen(0.2, 0.5, 0.5)

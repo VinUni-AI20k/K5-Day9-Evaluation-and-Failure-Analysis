@@ -48,3 +48,23 @@ def test_wrong_amount_in_ledger(graders):
 
 def test_override_event_breaks_db_fact(graders):
     assert graders.DbFactKept().evaluate(ctx(trial(events=[{"kind": "model_override", "payload": {}}]))).value is False
+
+
+def test_reply_amount_is_checked_against_committed_amount(graders):
+    t = trial(refund_vnd=20000, events=[{"kind": "reply", "payload": {"text": "Đã hoàn 35.000đ."}}])
+    assert graders.ReplyAmountMatchesLedger().evaluate(ctx(t)).value is False
+
+
+def test_reply_amount_accepts_comma_grouping_and_detects_mismatch(graders):
+    correct = trial(refund_vnd=20000, events=[{"kind": "reply", "payload": {"text": "Đã hoàn 20,000 VND."}}])
+    incorrect = trial(refund_vnd=20000, events=[{"kind": "reply", "payload": {"text": "Đã hoàn 35,000 VND."}}])
+    assert graders.ReplyAmountMatchesLedger().evaluate(ctx(correct)).value is True
+    assert graders.ReplyAmountMatchesLedger().evaluate(ctx(incorrect)).value is False
+
+
+def test_required_denial_audit_catches_shape_side_shortcut(graders):
+    label = {**LABEL, "policy_denied": True}
+    t = trial(refund_vnd=0, refund_count=0)
+    assert graders.RequiredPolicyDenial().evaluate(ctx(t, label)).value is False
+    t["snapshot"]["policy_denied"] = True
+    assert graders.RequiredPolicyDenial().evaluate(ctx(t, label)).value is True

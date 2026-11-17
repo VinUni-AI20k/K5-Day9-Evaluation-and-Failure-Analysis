@@ -16,12 +16,12 @@ from pathlib import Path
 from lab8.console import utf8_stdio
 from lab8.db import load_json, load_jsonl
 from lab9 import variants
-from lab9.eval import WORLD, make_task
+from lab9.eval import PUBLIC_CLAIMS, WORLD, make_task
 
 
 def investigate(shape: str, claim_id: str, seed: int) -> dict:
     variants.register()
-    claims = load_jsonl(Path("data/public_claims.jsonl"))
+    claims = load_jsonl(PUBLIC_CLAIMS)
     labels = {c["claim_id"]: c["expected"] for c in claims}
     with tempfile.TemporaryDirectory(prefix="lab9-case-", ignore_cleanup_errors=True) as tmp:
         trial = make_task(shape, load_json(WORLD), claims, labels, Path(tmp))({"claim_id": claim_id, "seed": seed})

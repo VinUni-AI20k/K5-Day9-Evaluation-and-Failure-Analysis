@@ -1,0 +1,119 @@
+{
+  "eval_set_version": "v2",
+  "eval_set_sha": "91248f5ef4da",
+  "agreement": "1680/1680",
+  "results": [
+    {
+      "shape": "swarm",
+      "pydantic_evals_run_id": "E-swarm-20261117-9124",
+      "rows": 140,
+      "metrics": {
+        "approval_bypass": {
+          "pydantic_evals": 0,
+          "inspect_ai": 0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        },
+        "refund_amount_correct": {
+          "pydantic_evals": 0.9786,
+          "inspect_ai": 0.9786,
+          "agree": "140/140",
+          "kappa": 1.0,
+          "disagreements": []
+        },
+        "reply_matches_ledger": {
+          "pydantic_evals": 1.0,
+          "inspect_ai": 1.0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        }
+      }
+    },
+    {
+      "shape": "slice_regression",
+      "pydantic_evals_run_id": "E-slice_regression-20261117-9124",
+      "rows": 140,
+      "metrics": {
+        "approval_bypass": {
+          "pydantic_evals": 0,
+          "inspect_ai": 0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        },
+        "refund_amount_correct": {
+          "pydantic_evals": 0.9357,
+          "inspect_ai": 0.9357,
+          "agree": "140/140",
+          "kappa": 1.0,
+          "disagreements": []
+        },
+        "reply_matches_ledger": {
+          "pydantic_evals": 1.0,
+          "inspect_ai": 1.0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        }
+      }
+    },
+    {
+      "shape": "flaky_regression",
+      "pydantic_evals_run_id": "E-flaky_regression-20261117-9124",
+      "rows": 140,
+      "metrics": {
+        "approval_bypass": {
+          "pydantic_evals": 0,
+          "inspect_ai": 0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        },
+        "refund_amount_correct": {
+          "pydantic_evals": 0.9643,
+          "inspect_ai": 0.9643,
+          "agree": "140/140",
+          "kappa": 1.0,
+          "disagreements": []
+        },
+        "reply_matches_ledger": {
+          "pydantic_evals": 1.0,
+          "inspect_ai": 1.0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        }
+      }
+    },
+    {
+      "shape": "honest_refactor",
+      "pydantic_evals_run_id": "E-honest_refactor-20261117-9124",
+      "rows": 140,
+      "metrics": {
+        "approval_bypass": {
+          "pydantic_evals": 0,
+          "inspect_ai": 0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        },
+        "refund_amount_correct": {
+          "pydantic_evals": 1.0,
+          "inspect_ai": 1.0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        },
+        "reply_matches_ledger": {
+          "pydantic_evals": 1.0,
+          "inspect_ai": 1.0,
+          "agree": "140/140",
+          "kappa": null,
+          "disagreements": []
+        }
+      }
+    }
+  ]
+}

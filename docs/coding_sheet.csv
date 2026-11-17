@@ -1,0 +1,6 @@
+anchor,run_id,shape,claim_id,seed,fm_primary,fm_secondary,first_wrong_step,first_wrong_kind,first_wrong_payload,symptom,grader_that_catches
+A1,E-swarm-20261117-9b89,swarm,C-002,55,FM-03,,3,model_override,"{""delay_days"": 5} (DB event 2 = 2)","ledger 20000 vs label 0; resolved vs denied","db_fact_kept, refund_amount_correct"
+A2,E-seeded_regression-20261117-9b89,seeded_regression,C-002,11,FM-03,,3,model_override,"{""delay_days"": 5} (DB event 2 = 2)","ledger 20000 vs label 0; resolved vs denied","db_fact_kept, refund_amount_correct"
+A3,E-seeded_regression-20261117-9b89,seeded_regression,C-007,11,FM-02,FM-08,5,reply,"""da hoan 35.000d"" after host refused (no ledger row)","ledger 0; status resolved vs denied","pass_rate, reply_matches_ledger"
+A4,E-seeded_regression-20261117-9b89,seeded_regression,C-013,11,FM-05,,5,proposal,"{""amount_vnd"": 0} = quote 35000 - refunded 35000; host never called","no policy_denied audit; proposal 0 vs label 35000","proposal_correct, pass_rate"
+A5,E-seeded_regression-20261117-9b89,seeded_regression,C-014,11,FM-05,FM-08,5,proposal,"{""amount_vnd"": 120000} = quote 150000 - refunded 30000; host deducts again","ledger 90000 vs label 120000; reply says 120000","refund_amount_correct, proposal_correct, reply_matches_ledger"

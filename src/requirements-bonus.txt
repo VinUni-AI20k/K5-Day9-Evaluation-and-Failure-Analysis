@@ -1,0 +1,2 @@
+# Bonus only (lab9.inspect_port). Not needed by CI or the core/advanced lab.
+inspect-ai==0.3.290

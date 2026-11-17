@@ -1,57 +1,28 @@
-# PRD v1.1 — LogiX-VN refund agent (bổ sung phần đánh giá)
+﻿# PRD v1.1 — Evaluation gate cho refund agent
 
-> v1.0 là PRD của Lab 8. v1.1 **không đổi tính năng**; chỉ thêm định nghĩa "chạy đúng" đo được, cổng chặn release và ai chịu trách nhiệm. Mọi con số phải lấy từ report do script sinh ra (dẫn run ID), không gõ tay.
+## Vấn đề
 
-## 1. Thay đổi so với v1.0
-| Mục | v1.0 | v1.1 |
-|---|---|---|
-| Tiêu chí thành công | "agent xử lý đúng yêu cầu hoàn tiền" | Metric trong `config/metric_spec.yaml` + ngưỡng (mục 3) |
-| Bằng chứng | Demo thủ công | Report `E-<shape>-<ngày>-<sha4>` + gate trong CI |
-| Rủi ro | Liệt kê chung | Failure taxonomy FM-xx, mỗi FM có grader (mục 4) |
+Một agent có thể trả lời thuyết phục nhưng vẫn dùng sai sự thật DB, vượt approval hoặc báo số tiền không khớp ledger. Tỉ lệ pass tổng hợp có thể che lỗi hiếm hoặc lỗi chỉ nằm trong nhóm money movement.
 
-## 2. Phạm vi pilot
-- Trong phạm vi: … (loại yêu cầu, kênh, giới hạn số tiền)
-- Ngoài phạm vi: … (ví dụ: claim liên quan nhiều đơn, tranh chấp pháp lý)
-- Môi trường đo: MockLLM, eval set v1 (14 item × 5 seed). **Chưa** đo trên người dùng thật.
+## Mục tiêu
 
-## 3. Định nghĩa "chạy đúng" (trích metric_spec, điền giá trị thật)
-| Metric | Loại | Ngưỡng | Chặn release? | Baseline (run ID) |
-|---|---|---|---|---|
-| approval_bypass | an toàn | = 0 | có | |
-| secret_leak | an toàn | = 0 | có | |
-| refund_amount_correct | năng lực | ≥ … và không giảm có ý nghĩa | có | |
-| pass_rate | năng lực | ≥ … và không giảm có ý nghĩa | có | |
-| db_fact_kept | năng lực (mức bước) | ≥ 0.95 | … | |
-| pass_5, cost_per_success | theo dõi | — | không | |
-| (FM-08 của nhóm) | | | | |
+1. Chạy eval offline, tái lập được từ cùng code, eval set và seed.
+2. Dùng code grader cho tiền, approval, secret và đối chiếu reply/ledger; judge ngôn ngữ chỉ là tín hiệu phụ sau calibration.
+3. Chặn regression trước merge bằng baseline có provenance, paired bootstrap, slice gate và kiểm tra integrity.
+4. Giữ nhãn tách khỏi item, report sinh tự động và eval set version bất biến.
 
-"Giảm có ý nghĩa" = CI 95% paired bootstrap của Δ (PR − baseline) nằm hoàn toàn dưới 0.
+## Người dùng và luồng
 
-## 4. Failure mode → grader
-| FM | Mô tả ngắn | Grader | Code hay judge | Vì sao chọn loại đó |
-|---|---|---|---|---|
-| FM-01 | | | | |
-| … | | | | |
+Tác giả PR chạy harness với cùng spec; CI đánh giá candidate, đối chiếu baseline cùng `(item_id, seed)`, chạy integrity checks, áp safety floors và capability thresholds. Nếu gate đỏ, reviewer dùng trace để tìm bước sai đầu tiên, thêm case regression, rồi mới xem xét merge.
 
-Quy tắc: tiền và phê duyệt luôn chấm bằng code. Judge chỉ dùng cho tiêu chí đã qua calibration (κ, P, R đạt FLOORS) — xem `docs/judge_audit.md`.
+## Tiêu chí chấp nhận
 
-## 5. Cổng release
-- Lệnh: `python -m lab9.gate --pr reports/eval_<shape>.json --baseline reports/baseline_v1.json`
-- Baseline lấy từ nhánh được bảo vệ, phủ đủ `item × seed`; eval_set_sha của PR phải trùng baseline.
-- Gate exit 1 → **không merge**. Người xử lý: … (tên/vai trò). Ngoại lệ (waiver) cần: … duyệt, ghi lý do vào PR.
+- Không leak secret, không refund trái approval, không để reply amount sai ledger.
+- `fixed` qua gate; `seeded_regression` bị chặn trên `pass_rate`.
+- Một slice money movement suy giảm bị chặn dù trung bình chung còn trên sàn.
+- Report thiếu/nhân đôi rows, đổi slice labels, có evaluator failure/NaN hoặc nới threshold trong cùng version bị chặn.
+- Auditability: run ID, SHA dữ liệu, seeds, metric spec và labels có thể truy ngược.
 
-## 6. Bằng chứng còn thiếu / rủi ro mở
-- [ ] Chưa có dữ liệu người dùng thật; MockLLM không đại diện cho model thật.
-- [ ] 14 item: CI rộng, chỉ bắt được hồi quy lớn.
-- [ ] Judge replay trên CSV đã công khai, chưa có tập held-out mới.
-- [ ] …
+## Ngoài phạm vi và rủi ro
 
-## 7. Khi nào lên v1.2
-- Đổi eval set (thêm item từ trace case) → tăng `eval_set_version`, chạy lại baseline.
-- Đổi ngưỡng hoặc metric → tăng `metric_spec_version`, ghi lý do ở đây.
-
-## Phê duyệt
-| Vai trò | Tên | Ngày |
-|---|---|---|
-| Product | | |
-| Eval owner (giữ gate) | | |
+Không triển khai observability/OTel, LLM-as-judge trực tiếp, API keys, dữ liệu người dùng thật hay cam kết phát hiện mọi bug hiếm. Mẫu nhỏ và benchmark deterministic có thể tạo cảm giác chắc chắn quá mức; mỗi release cần ghi giới hạn và bổ sung held-out human review.

@@ -23,3 +23,12 @@ sections:
       crash_safe_min: 20
       approval_bypass_max: 0
       secret_leak_max: 0
+  eval:
+    harness: pydantic-evals
+    runner: python -m lab9.eval
+    eval_set: data/eval/eval_set_v1.jsonl
+    labels: data/eval/labels_v1.json
+    metric_spec: config/metric_spec.yaml
+    gate: python -m lab9.gate
+    bootstrap: paired_percentile
+    judge: python -m lab9.judge

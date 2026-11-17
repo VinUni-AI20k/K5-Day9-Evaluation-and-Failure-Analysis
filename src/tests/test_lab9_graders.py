@@ -46,5 +46,27 @@ def test_wrong_amount_in_ledger(graders):
     assert graders.RefundAmountCorrect().evaluate(ctx(trial(refund_vnd=60000))).value is False
 
 
+def test_wrong_proposal_amount(graders):
+    t = trial()
+    t["result"]["proposal_amount"] = 0
+    assert graders.ProposalAmountCorrect().evaluate(ctx(t)).value is False
+
+
 def test_override_event_breaks_db_fact(graders):
     assert graders.DbFactKept().evaluate(ctx(trial(events=[{"kind": "model_override", "payload": {}}]))).value is False
+
+
+def test_reply_amount_must_match_ledger(graders):
+    matching = trial(events=[{"kind": "reply", "payload": {"text": "Đã hoàn 35.000đ."}}])
+    wrong = trial(events=[{"kind": "reply", "payload": {"text": "Đã hoàn 60.000đ."}}])
+    assert graders.ReplyMatchesLedger().evaluate(ctx(matching)).value is True
+    assert graders.ReplyMatchesLedger().evaluate(ctx(wrong)).value is False
+
+
+def test_seeded_regression_c002_trace_keeps_db_override_visible():
+    from lab9.trace_case import investigate
+
+    case = investigate("seeded_regression", "C-002", 11)
+    trial_result = case["trial"]
+    assert any(event.get("kind") == "model_override" for event in trial_result["events"])
+    assert trial_result["lab8_pass"] is False

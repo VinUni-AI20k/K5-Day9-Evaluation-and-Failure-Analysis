@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Quầy hoàn tiền LogiX · 4 shape</title>
+  <style>
+    :root{--bg:#0a1020;--panel:#121d30;--panel2:#192841;--line:#304058;--text:#eef4ff;--muted:#b1c0d5;--accent:#75d5d0;--good:#8ce5ba;--bad:#ff9b99;--warn:#f8cf83}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 75% -15%,#293868 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.48 system-ui,-apple-system,"Segoe UI",sans-serif}
+    body[data-shape="single"]{--accent:#a8a0ff}body[data-shape="orchestrator"]{--accent:#e7ad7a}body[data-shape="swarm"]{--accent:#ef9cc0}
+    button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button:disabled{opacity:.4;cursor:default}
+    main{width:min(1190px,calc(100% - 32px));margin:auto;padding:28px 0 52px}h1,h2,h3,p{margin:0}h1{font-size:clamp(30px,4.5vw,49px);letter-spacing:-.045em;line-height:1.08}h2{font-size:22px;letter-spacing:-.02em}h3{font-size:16px}small{font-size:12px}
+    .eyebrow{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.lead{color:var(--muted);max-width:75ch;margin-top:12px}.hero{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:26px}.hero-side{border:1px solid var(--line);border-radius:999px;padding:8px 13px;color:var(--good);white-space:nowrap}
+    .shape-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:18px}.shape-btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:13px;text-align:left;padding:13px 15px;min-height:68px}.shape-btn:hover{border-color:var(--accent)}.shape-btn[aria-pressed="true"]{border-color:var(--accent);background:var(--panel2);box-shadow:inset 0 3px var(--accent)}.shape-btn b,.shape-btn span{display:block}.shape-btn b{font-size:14px}.shape-btn span{font-size:12px;color:var(--muted);margin-top:2px}
+    .tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:23px;overflow-x:auto}.tab{border:0;background:none;color:var(--muted);padding:12px 16px;white-space:nowrap;border-bottom:2px solid transparent}.tab[aria-selected="true"]{color:var(--text);border-color:var(--accent);font-weight:700}
+    [hidden]{display:none!important}.section{margin-top:22px}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin:24px 0 12px}.muted{color:var(--muted)}.tiny{font-size:12px}.panel{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:18px}.grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:13px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:14px}.card h3{margin-bottom:7px}.card p{color:var(--muted);font-size:13px}
+    .chips{display:flex;gap:7px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:7px 10px;border-radius:999px;font-size:12px;white-space:nowrap}.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--text);background:#2b3854}.chip:hover{color:var(--text)}.selector-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}.seed-picker{display:flex;align-items:center;gap:7px;color:var(--muted)}select{color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:85px}
+    .case-title{margin-top:17px}.case-title b{color:var(--accent)}.tag{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}.tag.good{color:var(--good);background:#173c39}.tag.bad{color:var(--bad);background:#4d303d}.tag.neutral{color:var(--text);background:#33445a}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}.mono{font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.kpi{background:var(--panel2);border-radius:10px;padding:11px}.kpi span{display:block;color:var(--muted);font-size:12px}.kpi strong{display:block;margin-top:3px;font-size:17px;font-variant-numeric:tabular-nums}
+    .route{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:14px}.route-node{border:1px solid var(--line);background:var(--panel2);border-radius:10px;min-height:97px;padding:12px;position:relative}.route-node:not(:last-child):after{content:"→";position:absolute;right:-13px;top:39%;z-index:2;color:var(--accent);background:var(--panel);border-radius:50%;width:18px;text-align:center}.route-node b{display:block;font-size:13px;line-height:1.27}.route-node span{display:block;color:var(--muted);font-size:11px;margin-top:7px;line-height:1.35}.route-node.skipped{opacity:.46}.route-node.done{border-color:var(--accent)}
+    .diagram-layout{display:grid;grid-template-columns:minmax(290px,420px) minmax(0,1fr);gap:22px;align-items:start}.diagram-heading{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.diagram-title{font-size:21px;font-weight:750;margin:4px 0 9px}.diagram-scroll{overflow-x:auto}.workflow-svg{width:100%;height:auto;display:block}.workflow-svg .edge{fill:none;stroke:#38465b;stroke-width:2}.workflow-svg .edge.on{stroke:#94a5ff;stroke-width:2.7}.workflow-svg .edge.on.no{stroke:#f4b640}.workflow-svg .node rect{fill:#111b2b;stroke:#38465b;stroke-width:1.5}.workflow-svg .node.on rect{fill:#243061;stroke:#91a2ff;stroke-width:2}.workflow-svg .node.exit.on rect{fill:#f4b640;stroke:#f4b640}.workflow-svg .node text{fill:#c5d5ec;text-anchor:middle;pointer-events:none}.workflow-svg .node.on text{fill:#fff}.workflow-svg .node.exit.on text{fill:#1a2435}.workflow-svg .node .title{font-size:14px;font-weight:700}.workflow-svg .node .sub{font-size:11px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.workflow-svg .node{cursor:pointer}.workflow-svg .node.selected rect{stroke:#fff;stroke-width:2.7}.workflow-svg .edge-label{fill:#a8bfd5;font-size:11px}.diagram-hint{color:var(--muted);font-size:13px;margin-top:7px}.diagram-side{min-width:0;padding-top:6px}.diagram-side h3{margin:10px 0 6px}.diagram-side .codebox{min-height:150px}.diagram-summary{border-left:3px solid #94a5ff;background:var(--panel2);padding:12px 14px;border-radius:0 9px 9px 0;color:var(--muted);font-size:13px;margin-top:14px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 13px}.btn{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:8px 11px;min-height:38px}.btn.primary{border-color:var(--accent);color:var(--accent)}.progress{flex:1;min-width:100px;height:7px;border-radius:99px;background:#344159;overflow:hidden}.progress i{display:block;background:var(--accent);height:100%;transition:width .25s}
+    .event{border-left:3px solid var(--accent);padding:7px 13px;margin:4px 0 10px;background:var(--panel2);border-radius:0 9px 9px 0}.event strong{display:block}.event p{color:var(--muted);font-size:13px;margin-top:4px}.payload,.codebox{margin:8px 0 0;padding:12px;background:#0b1729;border:1px solid var(--line);border-radius:9px;color:#d1e6ef;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}.codebox{max-height:370px;overflow:auto}.fullcode{max-height:620px}.trace-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}.trace-pill{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:7px;padding:5px 8px;font-size:11px}.trace-pill.active{border-color:var(--accent);color:var(--text)}
+    .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.fact{padding:9px;background:var(--panel2);border-radius:8px}.fact span{display:block;color:var(--muted);font-size:11px}.fact strong{display:block;font-size:13px;overflow-wrap:anywhere}.host-lines{display:grid;gap:7px;margin-top:9px}.host-line{padding:9px 11px;border-radius:8px;background:var(--panel2);font-size:13px}.host-line b{color:var(--accent)}.callout{border-left:3px solid var(--warn);background:#30333c;color:#f2e9d5;padding:11px 13px;border-radius:5px;margin-top:12px;font-size:13px}
+    .safety{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.safety .card b{color:var(--good)}.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{background:var(--panel2);padding:15px;border-radius:10px}.metric small{display:block;color:var(--muted)}.metric strong{display:block;font-size:23px;font-variant-numeric:tabular-nums}.metric em{display:block;color:var(--muted);font-size:11px;font-style:normal}
+    .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:710px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th{color:var(--muted);font-size:12px;font-weight:700;white-space:nowrap}tbody tr:last-child td{border:0}tbody tr.selected{background:#223450}.bar{display:inline-block;width:76px;height:7px;border-radius:99px;background:#39445b;overflow:hidden;vertical-align:middle;margin-right:8px}.bar i{display:block;height:100%;background:var(--accent)}.bar i.imperfect{background:var(--warn)}
+    .code-intro{margin-bottom:12px;color:var(--muted)}footer{color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:28px;padding-top:18px}
+    @media(max-width:900px){.grid2,.diagram-layout{grid-template-columns:1fr}.shape-nav{grid-template-columns:repeat(2,1fr)}.metric-grid{grid-template-columns:repeat(2,1fr)}.workflow-svg{max-width:420px;margin:auto}}
+    @media(max-width:650px){main{width:calc(100% - 20px)}.workflow-svg{min-width:360px}.route{grid-template-columns:1fr}.route-node{min-height:0}.route-node:not(:last-child):after{content:"↓";top:auto;bottom:-15px;right:50%}.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid3,.safety{grid-template-columns:1fr}.hero-side{white-space:normal}}
+  </style>
+</head>
+<body data-shape="workflow">
+<main>
+  <header class="hero">
+    <div><div class="eyebrow">Lab 8 · mô phỏng từ lượt chạy thật</div><h1>Quầy hoàn tiền LogiX</h1><p class="lead">Một khiếu nại, bốn cách điều phối. Chọn shape và ca test để xem trace thật, quote, quyết định của host và số tiền đã ghi vào ledger.</p></div>
+    <div class="hero-side" id="crash-score">Crash safety —</div>
+  </header>
+  <nav class="shape-nav" aria-label="Chọn shape" id="shape-nav"></nav>
+  <div class="tabs" role="tablist" aria-label="Chế độ xem">
+    <button class="tab" type="button" role="tab" id="tab-sim" aria-controls="view-sim" aria-selected="true">Mô phỏng từng claim</button>
+    <button class="tab" type="button" role="tab" id="tab-overview" aria-controls="view-overview" aria-selected="false">Tổng quan và số đo</button>
+    <button class="tab" type="button" role="tab" id="tab-code" aria-controls="view-code" aria-selected="false">Code và ranh giới</button>
+  </div>
+
+  <section id="view-sim" role="tabpanel" aria-labelledby="tab-sim">
+    <div class="panel">
+      <div class="selector-row"><div class="chips" id="claim-chips" aria-label="Chọn claim"></div><div class="seed-picker"><label for="seed">Seed</label><select id="seed"></select></div></div>
+      <h2 class="case-title" id="case-title"></h2>
+      <div class="meta" id="run-meta" aria-live="polite"></div>
+      <div class="kpi-grid" id="run-kpis"></div>
+    </div>
+
+    <div class="section-head"><h2 id="route-title">Đường đi qua shape</h2><p class="muted tiny">Sơ đồ là kiến trúc; các event bên dưới lấy từ trace thật.</p></div>
+    <div class="panel" id="workflow-diagram-panel" hidden>
+      <div class="diagram-layout">
+        <div><div class="diagram-heading">Sơ đồ workflow</div><div class="diagram-title" id="diagram-title"></div><div class="diagram-scroll"><svg class="workflow-svg" id="workflow-svg" viewBox="0 0 420 690" role="img" aria-label="Sơ đồ quyết định workflow và lối đi của claim đang chọn"></svg></div><p class="diagram-hint">Đường sáng là lối đi của claim đang chọn. Bấm vào một ô để xem code của bước đó.</p></div>
+        <div class="diagram-side"><div class="eyebrow">Bước đang xem</div><h3 id="diagram-step-title"></h3><p class="muted tiny" id="diagram-step-note"></p><pre class="codebox" id="diagram-code"></pre><div class="diagram-summary" id="diagram-summary"></div></div>
+      </div>
+    </div>
+    <div class="panel" id="route-panel"><div class="route" id="route"></div></div>
+
+    <div class="grid2 section">
+      <section class="panel" aria-labelledby="trace-title">
+        <div class="section-head" style="margin-top:0"><h2 id="trace-title">Chạy từng event</h2><p class="muted tiny" id="trace-count"></p></div>
+        <div class="controls"><button class="btn" id="prev-event" type="button">← Trước</button><button class="btn primary" id="next-event" type="button">Tiếp →</button><button class="btn" id="all-events" type="button">Xem hết</button><div class="progress" aria-hidden="true"><i id="progress-fill"></i></div></div>
+        <div id="event-detail" aria-live="polite"></div>
+        <div class="trace-list" id="trace-list" aria-label="Các event của run"></div>
+        <div class="section-head"><h3>Code liên quan</h3><p class="muted tiny">Trích từ file shape hiện tại</p></div>
+        <pre class="codebox" id="code-snippet"></pre>
+      </section>
+      <aside class="panel" aria-labelledby="host-title">
+        <h2 id="host-title">Hồ sơ, host và ledger</h2>
+        <p class="muted tiny" style="margin:6px 0 12px">Chỉ hiển thị field đơn đã qua allowlist; không có SĐT, địa chỉ, tên hàng hay ghi chú nội bộ.</p>
+        <div class="facts" id="order-facts"></div>
+        <div class="host-lines" id="host-lines"></div>
+        <div class="callout" id="case-callout"></div>
+      </aside>
+    </div>
+    <section class="panel section" id="safety-panel" hidden><h2 id="safety-title"></h2><p class="muted tiny" style="margin:4px 0 12px">Lượt chạy riêng trên SQLite mới, không phải một trial benchmark.</p><div class="safety" id="safety-grid"></div></section>
+  </section>
+
+  <section id="view-overview" role="tabpanel" aria-labelledby="tab-overview" hidden>
+    <div class="grid3">
+      <div class="card"><div class="eyebrow">Nguồn vào</div><h3>Ticket là dữ liệu</h3><p>Chữ khách viết có thể sai. Shape lấy order_id và dữ kiện tiền từ hồ sơ có cấu trúc.</p></div>
+      <div class="card"><div class="eyebrow">Quote</div><h3>Code tính tiền</h3><p><code>compute_compensation</code> dùng order và policy hiệu lực; model không quyết số tiền.</p></div>
+      <div class="card"><div class="eyebrow">Ghi tiền</div><h3>Host là người ghi duy nhất</h3><p><code>issue_refund</code> kiểm approval, trần theo đơn, idempotency và audit.</p></div>
+    </div>
+    <div class="section-head"><h2 id="overview-title">Số đo cùng corpus</h2><p class="muted tiny">14 claim × 5 seed × 4 shape = 280 trial · VND mô phỏng</p></div>
+    <div class="metric-grid" id="selected-metrics"></div>
+    <div class="section-head"><h2>So sánh bốn shape</h2><p class="muted tiny">Event TB/P95 là event trace, không phải thời gian chạy.</p></div>
+    <div class="panel table-wrap"><table><thead><tr><th>Shape</th><th>Pass rate</th><th>Pass⁵</th><th>Seed variance</th><th>Cost/success</th><th>Event TB / P95</th><th>Model calls TB</th></tr></thead><tbody id="metric-table"></tbody></table></div>
+    <div class="section-head"><h2>Ma trận seed cho claim đang chọn</h2><p class="muted tiny">Nhấn một ô để trở lại lượt chạy đó.</p></div>
+    <div class="panel" id="seed-matrix"></div>
+  </section>
+
+  <section id="view-code" role="tabpanel" aria-labelledby="tab-code" hidden>
+    <div class="panel"><h2 id="source-title"></h2><p class="code-intro" id="source-explainer"></p><pre class="codebox fullcode" id="full-source"></pre></div>
+    <div class="section-head"><h2>Ranh giới bắt buộc</h2></div>
+    <div class="grid3">
+      <div class="card"><h3>Handoff</h3><p>Orchestrator chỉ giao tool đọc cho investigator. Handoff do <code>make_handoff</code> lọc field.</p></div>
+      <div class="card"><h3>Tiền và approval</h3><p>Shape truyền quote đầy đủ. Host kiểm approval đúng claim và trừ tiền đã hoàn trước đó.</p></div>
+      <div class="card"><h3>Trace</h3><p>Trace chỉ ghi dữ kiện allowlist; mỗi lượt có run_id và event list. Dữ liệu riêng không được ghi ra.</p></div>
+    </div>
+  </section>
+  <footer>Nguồn: code trong <code>src/lab8/shapes/</code>, <code>src/reports/benchmark.json</code>, <code>src/reports/crash.json</code> và 280 lượt chạy lại trên SQLite độc lập. Demo được dựng offline, không gửi dữ liệu ra mạng. Tạo lại: <code>cd src</code> rồi <code>python scripts/build_demo_3.py</code>.</footer>
+</main>
+<script id="demo-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  const data=JSON.parse(document.getElementById('demo-data').textContent);
+  const shapes=['workflow','single','orchestrator','swarm'];
+  const names={workflow:'A · Workflow',single:'B · Single ReAct',orchestrator:'C · Orchestrator',swarm:'D · Swarm reference'};
+  const shortNames={workflow:'Workflow',single:'Single',orchestrator:'Orchestrator',swarm:'Swarm'};
+  const blurbs={workflow:'Bước Python cố định · model chỉ draft',single:'Một vòng ReAct · tool đọc tối đa 8 bước',orchestrator:'Handoff allowlist · investigator chỉ đọc',swarm:'Peers trao đổi · có seed lệch nguồn dữ liệu'};
+  const routes={
+    workflow:[['Đọc claim','get_claim_view'],['Kiểm mã đơn','order_id có cấu trúc'],['Tra đơn','lookup_order + principal'],['Quote','compute_compensation'],['Host + trace','issue_refund → finish']],
+    single:[['ReAct bắt đầu','MockLLM + decide'],['Đọc claim','get_claim_view'],['Tra đơn','lookup_order'],['Quote bằng code','compute_compensation'],['Host + trace','issue_refund → finish']],
+    orchestrator:[['Đọc claim','get_claim_view'],['Handoff','make_handoff allowlist'],['Điều tra','read-only investigators'],['Quote','compute_compensation'],['Host + trace','issue_refund → finish']],
+    swarm:[['Peers đọc ticket','MockLLM peer + parse'],['Handoff','make_handoff'],['Điều tra','read-only investigators'],['Quote','có thể bị ticket override'],['Host + trace','issue_refund → finish']]
+  };
+  const state={shape:'workflow',claim:'C-001',seed:11,tab:'sim',event:0,diagramNode:null};
+  const byId=id=>document.getElementById(id);
+  const runs=new Map(data.runs.map(r=>[r.shape+'|'+r.claim_id+'|'+r.seed,r]));
+  const claims=new Map(data.claims.map(c=>[c.claim_id,c]));
+  const fmt=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2}).format(n);
+  const money=n=>fmt(n)+'đ';
+  const pct=n=>(n*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'%';
+  const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node};
+  function current(){return runs.get(state.shape+'|'+state.claim+'|'+state.seed)}
+  function fact(label,value){const box=el('div','fact');box.append(el('span','',label),el('strong','',String(value)));return box}
+  function badge(text,kind){return el('span','tag '+kind,text)}
+  function setTab(name){state.tab=name;for(const tab of ['sim','overview','code']){byId('view-'+tab).hidden=tab!==name;byId('tab-'+tab).setAttribute('aria-selected',String(tab===name))}render()}
+  ['sim','overview','code'].forEach(tab=>byId('tab-'+tab).addEventListener('click',()=>setTab(tab)));
+  function chooseShape(shape){state.shape=shape;state.event=0;state.diagramNode=null;render()}
+  function chooseClaim(claim){state.claim=claim;state.event=0;state.diagramNode=null;render()}
+  data.seeds.forEach(seed=>byId('seed').add(new Option(String(seed),String(seed))));
+  byId('seed').addEventListener('change',e=>{state.seed=Number(e.target.value);state.event=0;state.diagramNode=null;render()});
+  byId('prev-event').addEventListener('click',()=>{state.event=Math.max(0,state.event-1);renderTrace()});
+  byId('next-event').addEventListener('click',()=>{state.event=Math.min(current().trace.length-1,state.event+1);renderTrace()});
+  byId('all-events').addEventListener('click',()=>{state.event=current().trace.length-1;renderTrace()});
+  byId('crash-score').textContent='Crash safety '+data.crash_safety;
+
+  function renderShapeNav(){const nav=byId('shape-nav');nav.replaceChildren();shapes.forEach(shape=>{const b=el('button','shape-btn');b.type='button';b.setAttribute('aria-pressed',String(shape===state.shape));b.append(el('b','',names[shape]),el('span','',blurbs[shape]));b.addEventListener('click',()=>chooseShape(shape));nav.append(b)});document.body.dataset.shape=state.shape}
+  function renderClaims(){const box=byId('claim-chips');box.replaceChildren();data.claims.forEach(c=>{const b=el('button','chip',c.claim_id+' · '+c.matrix_id);b.type='button';b.title=c.description;b.setAttribute('aria-pressed',String(c.claim_id===state.claim));b.addEventListener('click',()=>chooseClaim(c.claim_id));box.append(b)})}
+  function renderRun(){const run=current(),claim=claims.get(state.claim);byId('seed').value=String(state.seed);byId('case-title').replaceChildren(el('b','',claim.matrix_id+' · '),document.createTextNode(claim.description));const meta=byId('run-meta');meta.replaceChildren(badge(run.passed?'PASS':'FAIL',run.passed?'good':'bad'),badge(run.status,run.status==='resolved'?'good':run.status==='denied'?'bad':'neutral'),el('span','mono',run.run_id));const k=byId('run-kpis');k.replaceChildren();[['Quote đầy đủ',money(run.proposal_amount)],['Ledger ghi',money(run.refund_amount)],['Audit committed',run.audit_count],['Cost mô phỏng',fmt(run.cost_estimate)+' VND']].forEach(([a,b])=>{const box=el('div','kpi');box.append(el('span','',a),el('strong','',String(b)));k.append(box)})}
+  const diagramNodes=[
+    {id:'start',x:52,y:12,w:200,h:46,title:'Nhận mã khiếu nại',sub:'run_claim(claim_id)',needle:'def run_claim('},
+    {id:'exists',x:52,y:100,w:200,h:46,title:'Claim tồn tại?',sub:'get_claim_view',needle:'get_claim_view(conn,'},
+    {id:'order',x:52,y:188,w:200,h:46,title:'Có mã đơn hàng?',sub:'claim["order_id"]',needle:'if not claim["order_id"]:'},
+    {id:'owner',x:52,y:276,w:200,h:46,title:'Đơn của khách này?',sub:'lookup_order',needle:'lookup_order(conn,'},
+    {id:'compute',x:52,y:364,w:200,h:46,title:'Tính quote bằng code',sub:'compute_compensation',needle:'compute_compensation(conn,'},
+    {id:'positive',x:52,y:452,w:200,h:46,title:'Quote > 0?',sub:'if proposal <= 0',needle:'if proposal <= 0:'},
+    {id:'host',x:52,y:540,w:200,h:46,title:'Host duyệt chi',sub:'issue_refund',needle:'issue_refund(conn,'},
+    {id:'missing',x:277,y:100,w:125,h:46,title:'failed',sub:'unknown claim',needle:'return done("failed", 0,'},
+    {id:'needs_info',x:277,y:188,w:125,h:46,title:'needs_info',sub:'thiếu order_id',needle:'return done("needs_info"'},
+    {id:'escalated',x:277,y:276,w:125,h:46,title:'escalated',sub:'không đúng chủ',needle:'return done("escalated"'},
+    {id:'denied_zero',x:277,y:452,w:125,h:46,title:'denied',sub:'quote = 0',needle:'return done("denied", 0,'},
+    {id:'resolved',x:5,y:638,w:125,h:44,title:'resolved',sub:'host OK',needle:'return done("resolved"'},
+    {id:'denied_host',x:147,y:638,w:125,h:44,title:'denied',sub:'host từ chối',needle:'outcome["conflict"] else "denied"'},
+    {id:'failed_conflict',x:289,y:638,w:125,h:44,title:'failed',sub:'amount conflict',needle:'outcome["conflict"] else "denied"'}
+  ];
+  const diagramEdges=[
+    ['start-exists','152,58 152,100'],['exists-order','152,146 152,188'],['exists-missing','252,123 277,123'],
+    ['order-owner','152,234 152,276'],['order-needs_info','252,211 277,211'],
+    ['owner-compute','152,322 152,364'],['owner-escalated','252,299 277,299'],
+    ['compute-positive','152,410 152,452'],['positive-host','152,498 152,540'],['positive-denied_zero','252,475 277,475'],
+    ['host-resolved','152,586 152,612 67,612 67,638'],['host-denied_host','152,586 152,612 209,612 209,638'],
+    ['host-failed_conflict','152,586 152,612 351,612 351,638']
+  ];
+  function diagramPath(run){const nodes=['start','exists'],edges=['start-exists'];if(run.status==='failed'&&run.proposal_amount===0){nodes.push('missing');edges.push('exists-missing');return {nodes,edges,focus:'exists'}}nodes.push('order');edges.push('exists-order');if(run.status==='needs_info'){nodes.push('needs_info');edges.push('order-needs_info');return {nodes,edges,focus:'order'}}nodes.push('owner');edges.push('order-owner');if(run.status==='escalated'){nodes.push('escalated');edges.push('owner-escalated');return {nodes,edges,focus:'owner'}}nodes.push('compute','positive');edges.push('owner-compute','compute-positive');if(run.status==='denied'&&run.proposal_amount===0){nodes.push('denied_zero');edges.push('positive-denied_zero');return {nodes,edges,focus:'positive'}}nodes.push('host');edges.push('positive-host');const outcome=run.status==='resolved'?'resolved':run.status==='failed'?'failed_conflict':'denied_host';nodes.push(outcome);edges.push('host-'+outcome);return {nodes,edges,focus:'host'}}
+  function svg(tag,attrs){const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));return node}
+  function diagramExcerpt(needle){const lines=data.code.workflow.split('\n');let at=lines.findIndex(line=>line.includes(needle));if(at<0)at=lines.findIndex(line=>line.includes('def run_claim('));const start=Math.max(0,at-3),end=Math.min(lines.length,at+7);return lines.slice(start,end).map((line,i)=>String(start+i+1).padStart(3)+'  '+line).join('\n')}
+  function renderDiagramCode(){const node=diagramNodes.find(n=>n.id===state.diagramNode)||diagramNodes[0];byId('diagram-step-title').textContent=node.title;byId('diagram-step-note').textContent=node.sub+' · dòng code bên dưới lấy từ workflow.py';byId('diagram-code').textContent=diagramExcerpt(node.needle);const run=current();byId('diagram-summary').textContent='Lượt '+run.run_id+': '+run.status+' · quote '+money(run.proposal_amount)+' · ledger '+money(run.refund_amount)+'.';for(const g of byId('workflow-svg').querySelectorAll('.node'))g.classList.toggle('selected',g.dataset.node===state.diagramNode)}
+  function renderWorkflowDiagram(){const run=current(),path=diagramPath(run),canvas=byId('workflow-svg');byId('diagram-title').textContent=state.claim+' → '+run.status;canvas.replaceChildren();for(const [id,points] of diagramEdges){const edge=svg('polyline',{points,class:'edge'+(path.edges.includes(id)?' on':'')+(id.includes('missing')||id.includes('needs_info')||id.includes('escalated')||id.includes('denied_zero')?' no':'')});canvas.append(edge)}for(const [text,x,y] of [['có',160,166],['có',160,254],['có',160,342],['có',160,430],['có',160,518],['không',255,117],['không',255,205],['không',255,293],['không',255,469]]){const label=svg('text',{x,y,class:'edge-label'});label.textContent=text;canvas.append(label)}for(const item of diagramNodes){const on=path.nodes.includes(item.id),exit=!['start','exists','order','owner','compute','positive','host'].includes(item.id),g=svg('g',{class:'node'+(on?' on':'')+(exit?' exit':''),role:'button',tabindex:'0','aria-label':item.title+' — xem code'});g.dataset.node=item.id;g.append(svg('rect',{x:item.x,y:item.y,width:item.w,height:item.h,rx:exit?23:20}));const title=svg('text',{x:item.x+item.w/2,y:item.y+20,class:'title'});title.textContent=item.title;g.append(title);const sub=svg('text',{x:item.x+item.w/2,y:item.y+36,class:'sub'});sub.textContent=item.sub;g.append(sub);g.addEventListener('click',()=>{state.diagramNode=item.id;renderDiagramCode()});g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();state.diagramNode=item.id;renderDiagramCode()}});canvas.append(g)}if(!state.diagramNode)state.diagramNode=path.focus;renderDiagramCode()}
+  function renderRoute(){const workflow=state.shape==='workflow';byId('workflow-diagram-panel').hidden=!workflow;byId('route-panel').hidden=workflow;byId('route-title').textContent=workflow?'Sơ đồ workflow':'Đường đi qua shape';if(workflow){renderWorkflowDiagram();return}const run=current(),box=byId('route');box.replaceChildren();let stop=4;if(run.status==='needs_info')stop=state.shape==='single'?1:0;else if(run.status==='escalated')stop=2;else if(run.status==='denied'&&run.proposal_amount===0)stop=3;routes[state.shape].forEach(([originalTitle,originalSub],i)=>{const skipped=i>stop&&i<4;const title=i===4&&run.proposal_amount===0?'Trace kết quả':originalTitle;const sub=i===4&&run.proposal_amount===0?'Không có lệnh ghi refund':originalSub;const node=el('div','route-node '+(skipped?'skipped':'done'));node.append(el('b','',String(i+1)+'. '+title),el('span','',skipped?'Bỏ qua do dừng sớm':sub));box.append(node)})}
+  function eventMeaning(ev){const p=ev.payload||{};if(ev.kind==='step')return 'Bước '+(p.name||'workflow')+' đã chạy.';if(ev.kind==='read')return 'ReAct đã dùng tool đọc '+(p.tool||'')+'.';if(ev.kind==='handoff')return 'Handoff chỉ giao field và tool đã được allowlist.';if(ev.kind==='investigator')return 'Investigator trả dữ liệu từ tool chỉ đọc.';if(ev.kind==='quote')return 'Code tính quote từ order và policy hiệu lực.';if(ev.kind==='host')return 'Host kiểm approval, trần theo đơn và ledger.';if(ev.kind==='decision')return 'Shape trả status và proposal_amount.';if(ev.kind==='model_override')return 'Swarm thay delay từ ticket; đây là nguồn sai ở T02 seed 55.';if(ev.kind==='crash')return 'Crash được ghi vào trace và ném lại.';if(ev.kind==='error')return 'Claim không tồn tại hoặc lỗi được ghi nhận.';return 'Event từ trace của lượt chạy.'}
+  function codeNeedle(ev){const p=ev.payload||{};if(ev.kind==='handoff')return 'make_handoff(';if(ev.kind==='investigator')return 'run_readonly_investigators(';if(ev.kind==='quote')return 'compute_compensation(';if(ev.kind==='host'||p.name==='issue_refund')return 'issue_refund(conn,';if(ev.kind==='read')return 'def decide(';if(p.name==='lookup_order')return 'lookup_order(conn,';if(p.name==='get_claim_view')return 'get_claim_view(conn,';if(ev.kind==='model_override')return 'model_override';if(ev.kind==='decision')return 'finish(';return 'def run_claim('}
+  function excerpt(ev){const lines=data.code[state.shape].split('\n'),needle=codeNeedle(ev);let at=lines.findIndex(line=>line.includes(needle));if(at<0)at=lines.findIndex(line=>line.includes('def run_claim('));const start=Math.max(0,at-3),end=Math.min(lines.length,at+7);return lines.slice(start,end).map((line,i)=>String(start+i+1).padStart(3)+'  '+line).join('\n')}
+  function renderTrace(){const run=current(),events=run.trace;state.event=Math.min(state.event,events.length-1);const ev=events[state.event];byId('trace-count').textContent=(state.event+1)+' / '+events.length+' event';byId('prev-event').disabled=state.event===0;byId('next-event').disabled=state.event===events.length-1;byId('progress-fill').style.width=((state.event+1)/events.length*100)+'%';const detail=byId('event-detail');detail.replaceChildren();const block=el('div','event');block.append(el('strong','',ev.kind),el('p','',eventMeaning(ev)));block.append(el('pre','payload',JSON.stringify(ev.payload,null,2)));detail.append(block);byId('code-snippet').textContent=excerpt(ev);const list=byId('trace-list');list.replaceChildren();events.forEach((item,i)=>{const b=el('button','trace-pill '+(i===state.event?'active':''),(i+1)+' · '+item.kind);b.type='button';b.addEventListener('click',()=>{state.event=i;renderTrace()});list.append(b)})}
+  function renderHost(){const run=current(),facts=byId('order-facts');facts.replaceChildren();if(run.order){[['Mã đơn',run.order.order_id],['Trạng thái',run.order.status],['Trễ',run.order.delay_days+' ngày'],['Phí ship',money(run.order.shipping_fee_vnd)],['Đã trả',money(run.order.paid_vnd)],['Hỏng verified',run.order.damage_verified?'Có':'Không'],['Đã hoàn trước',money(run.prior_refunded_vnd)]].forEach(([a,b])=>facts.append(fact(a,b)))}else facts.append(fact('Đơn hiển thị',run.order_reason==='missing_order_id'?'Thiếu order_id':'Không trong phạm vi principal'));const host=byId('host-lines');host.replaceChildren();const approval=run.approval;const lines=[['Approval',approval?approval.approval_id+' · '+approval.status+' · '+money(approval.approved_vnd):'Không có'],['Quote gửi host',run.proposal_amount>0?money(run.proposal_amount)+' đầy đủ':'Không gọi host khi quote = 0'],['Policy denied',run.policy_denied_count+' audit'],['Ledger',run.refund_count+' refund · '+money(run.refund_amount)],['Khóa nếu ghi','refund:'+state.claim]];lines.forEach(([a,b])=>{const row=el('div','host-line');row.append(el('b','',a+' · '),document.createTextNode(b));host.append(row)});let msg='Kết quả thực tế khớp nhãn public; trace và ledger được đối chiếu trên database riêng.';if(!run.passed)msg='Đối chứng sai: '+run.reason+'. Swarm seed 55 tin delay trong ticket thay vì order row.';else if(state.claim==='C-014')msg='Quote '+money(run.proposal_amount)+' là entitlement đầy đủ. Đơn đã hoàn '+money(run.prior_refunded_vnd)+'; host chỉ ghi '+money(run.refund_amount)+' phần chênh.';else if(state.claim==='C-013')msg='Quote dương nhưng đơn đã hoàn đủ. Host từ chối và ghi policy_denied; shape không tự ghi refund.';else if(state.claim==='C-007')msg='Approval hết hạn. Shape truyền quote dương; host từ chối và ghi policy_denied.';else if(state.claim==='C-004')msg='Thiếu order_id: shape dừng với needs_info, không đoán mã đơn từ lời khách.';byId('case-callout').textContent=msg}
+  function renderSafety(){const panel=byId('safety-panel');panel.hidden=!['C-011','C-012'].includes(state.claim);if(panel.hidden)return;const safety=data.safety[state.shape],grid=byId('safety-grid');grid.replaceChildren();if(state.claim==='C-011'){byId('safety-title').textContent='T11 · Gọi lại cùng claim';const a=el('div','card');a.append(el('h3','','Lần 1 → lần 2'),el('p','',safety.retry.first+' → '+safety.retry.second));const b=el('div','card');b.append(el('h3','','Kết quả ledger'),el('p','',safety.retry.ledger_rows+' refund · '+safety.retry.audits+' audit refund_committed'));grid.append(a,b)}else{byId('safety-title').textContent='T12 · Crash sau effect, trước checkpoint';const a=el('div','card');a.append(el('h3','','Ngay sau crash'),el('p','',(safety.crash.injected?'InjectedCrash đã xảy ra':'Không crash')+' · '+safety.crash.before_rows+' refund · '+safety.crash.before_checkpoint+' checkpoint'));const b=el('div','card');b.append(el('h3','','Sau resume'),el('p','',safety.crash.resumed+' · '+safety.crash.after_rows+' refund · '+safety.crash.after_audits+' audit · '+safety.crash.after_checkpoint+' checkpoint'));grid.append(a,b)}}
+  function renderMetrics(){const m=data.metrics[state.shape],cards=byId('selected-metrics');byId('overview-title').textContent='Số đo · '+names[state.shape];cards.replaceChildren();[['Pass rate',pct(m.pass_rate),m.successes+'/'+m.trials+' trial'],['Pass⁵',pct(m.pass_5),'claim pass cả 5 seed'],['Cost/success',fmt(m.cost_per_success_vnd)+' VND','giá mô phỏng'],['Event TB',fmt(m.mean_steps),'P95 '+fmt(m.p95_steps)]].forEach(([a,b,c])=>{const card=el('div','metric');card.append(el('small','',a),el('strong','',b),el('em','',c));cards.append(card)});const table=byId('metric-table');table.replaceChildren();shapes.forEach(shape=>{const v=data.metrics[shape],row=el('tr',shape===state.shape?'selected':'');const cells=[shortNames[shape],pct(v.pass_rate),pct(v.pass_5),v.seed_variance.toFixed(6),fmt(v.cost_per_success_vnd)+' VND',fmt(v.mean_steps)+' / '+fmt(v.p95_steps),fmt(v.mean_model_calls)];cells.forEach((text,i)=>{const cell=el('td','');if(i===1){const bar=el('span','bar'),fill=el('i',v.pass_rate<1?'imperfect':'');fill.style.width=(v.pass_rate*100)+'%';bar.append(fill);cell.append(bar)}cell.append(document.createTextNode(text));row.append(cell)});table.append(row)});renderMatrix()}
+  function renderMatrix(){const root=byId('seed-matrix');root.replaceChildren();const table=el('table',''),head=el('thead',''),header=el('tr','');['Shape',...data.seeds.map(s=>'seed '+s)].forEach(s=>header.append(el('th','',s)));head.append(header);table.append(head);const body=el('tbody','');shapes.forEach(shape=>{const row=el('tr','');row.append(el('td','',shortNames[shape]));data.seeds.forEach(seed=>{const run=runs.get(shape+'|'+state.claim+'|'+seed),cell=el('td',''),b=el('button','tag '+(run.passed?'good':'bad'),run.passed?'PASS':'FAIL');b.type='button';b.setAttribute('aria-label',shortNames[shape]+' seed '+seed+' '+(run.passed?'pass':'fail'));b.addEventListener('click',()=>{state.shape=shape;state.seed=seed;state.event=0;state.diagramNode=null;setTab('sim');window.scrollTo({top:0,behavior:'smooth'})});cell.append(b);row.append(cell)});body.append(row)});table.append(body);root.append(table)}
+  function renderCode(){byId('source-title').textContent='src/lab8/shapes/'+(state.shape==='swarm'?'swarm_reference':state.shape)+'.py';byId('source-explainer').textContent=blurbs[state.shape]+' · code nguồn ở commit hiện tại; số dòng khớp file dùng để tạo demo.';byId('full-source').textContent=data.code[state.shape].split('\n').map((line,i)=>String(i+1).padStart(3)+'  '+line).join('\n')}
+  function render(){renderShapeNav();renderClaims();renderRun();renderRoute();renderTrace();renderHost();renderSafety();renderMetrics();renderCode()}
+  render();
+})();
+</script>
+</body>
+</html>

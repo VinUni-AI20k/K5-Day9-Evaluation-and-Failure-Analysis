@@ -4,7 +4,7 @@
 
 1. The baseline is a swarm run on the current eval set, and its metrics equal the CI's own swarm run.
    A baseline taken from another shape (e.g. `fixed`) or hand-edited makes every gate decision moot.
-2. The spec has at least one blocking capability metric of your own (M3, the FM-08 catcher) and
+2. The spec has at least one blocking metric of your own (M3, the FM-08 catcher) and
    a grader for it is registered in lab9.graders.GRADERS.
 Exit 0 = ok, 1 = a problem is printed.
 """
@@ -14,6 +14,7 @@ import argparse
 import json
 from pathlib import Path
 
+from lab8.console import utf8_stdio
 from lab9.eval import SPEC, load_spec
 from lab9.graders import GRADERS
 
@@ -42,9 +43,9 @@ def check(pr: dict, base: dict, spec: dict) -> list[str]:
         if not _same(base["metrics"][k], pr["metrics"][k]):
             problems.append(f"baseline metric {k} differs from CI's swarm run: re-run, never hand-edit")
     own = [m for m in spec["metrics"] if m["id"] not in STARTER_METRICS
-           and m.get("kind") == "capability" and m.get("blocking")]
+           and m.get("kind") in ("capability", "safety") and m.get("blocking")]
     if not own:
-        problems.append("spec has no blocking capability metric of your own (M3: the FM-08 catcher)")
+        problems.append("spec has no blocking metric of your own (M3: the FM-08 catcher)")
     for m in own:
         if m["id"] not in GRADERS:
             problems.append(f"metric {m['id']} has no grader registered in lab9.graders.GRADERS")
@@ -52,6 +53,7 @@ def check(pr: dict, base: dict, spec: dict) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    utf8_stdio()
     ap = argparse.ArgumentParser(prog="lab9.ci_check")
     ap.add_argument("--pr", required=True, help="the CI's own swarm report")
     ap.add_argument("--baseline", required=True)

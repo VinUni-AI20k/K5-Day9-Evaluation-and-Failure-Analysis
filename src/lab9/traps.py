@@ -18,6 +18,7 @@ from typing import Any
 
 import yaml
 
+from lab8.console import utf8_stdio
 from lab9.eval import SPEC, aggregate, load_spec
 
 
@@ -79,6 +80,7 @@ def build(pr: dict[str, Any], spec: dict[str, Any]) -> dict[str, tuple[dict, dic
 
 
 def main(argv: list[str] | None = None) -> int:
+    utf8_stdio()
     from lab9 import gate
     ap = argparse.ArgumentParser(prog="lab9.traps")
     ap.add_argument("--pr", required=True, help="a report the gate correctly blocks")

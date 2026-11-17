@@ -1,5 +1,9 @@
-# Nộp bài (hạn 23:59 cùng ngày)
-PR từ `starter/d09` → `main` của repo nhóm. Chấm commit cuối trước 23:59; commit sau hạn không tính.
+# Nộp bài (bài cá nhân, hạn nộp theo ca làm bài)
+1. Mở PR `starter/d09` → `main` **trong bản fork của bạn**, không mở vào repo gốc. Dán output gate exit 1 của `seeded_regression` vào mô tả PR.
+2. Job `eval-gate` xanh thì **merge PR vào `main`**. Giảng viên chấm nhánh `main` của bản fork; commit sau hạn của ca không tính.
+3. Dán **link repo fork** (`K5-L3A-DAY09-HoVaTen-MSSV-EvaluationandFailureAnalysis`) lên LMS.
+
+Làm thêm Advanced/Expert sau buổi: tiếp tục trên nhánh, mở PR mới rồi merge lại trước hạn.
 
 ## Core (nên xong trước 17:00)
 - [x] `src/lab9/{stats,graders,evalset}.py` đã hoàn thành TODO M1–M4

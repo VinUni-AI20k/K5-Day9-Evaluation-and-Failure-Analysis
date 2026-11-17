@@ -21,7 +21,7 @@ jobs:
     env:
       PYTHONUTF8: "1"
       EVAL_SPEC: config/metric_spec.yaml
-      # Committed by the team after M4 (re-run on main, never hand-edited).
+      # Committed by the student after M4 (re-run on main, never hand-edited).
       EVAL_BASELINE: reports/baseline_v1.json
     defaults: {run: {working-directory: src}}
     steps:
@@ -59,7 +59,7 @@ jobs:
             exit 1
           fi
 
-  # Advanced/Expert (M5-M7). Runs only once the team commits reports/baseline_v2.json, so a
+  # Advanced/Expert (M5-M7). Runs only once the student commits reports/baseline_v2.json, so a
   # Core-only submission stays green. Exit 1 = a survived mutant or a false alarm.
   eval-gate-v2:
     needs: eval-gate

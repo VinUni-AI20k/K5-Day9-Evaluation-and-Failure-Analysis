@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
-src/reports/
-src/traces/
 *.sqlite
+src/traces/
+src/reports/hidden_grade.json
+src/reports/bonus_hidden.json
+

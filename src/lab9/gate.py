@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from lab8.console import utf8_stdio
@@ -33,8 +34,91 @@ def integrity_check(pr: dict, base: dict, spec: dict, base_spec: dict | None = N
         including dropping no_significant_drop)
       - an item's slice tags in PR rows differ from the baseline's (relabelling an item out of a
         slice hides its regression from the slice gate)"""
-    # TODO M7
-    return []
+    problems: list[str] = []
+
+    # 1. Metric values nan/inf
+    for k, v in pr.get("metrics", {}).items():
+        if isinstance(v, (int, float)) and (math.isnan(v) or math.isinf(v)):
+            problems.append(f"metric {k} is nan/inf: {v}")
+
+    # 2. Row count matches manifest items * seeds
+    manifest = pr.get("manifest", {})
+    expected_rows = manifest.get("items", 0) * len(manifest.get("seeds", []))
+    if expected_rows > 0 and len(pr.get("rows", [])) != expected_rows:
+        problems.append(f"row count {len(pr.get('rows', []))} != {expected_rows} (items * seeds)")
+
+    # 3. PR (item_id, seed) set matches baseline
+    pr_pairs = {(r.get("item_id"), r.get("seed")) for r in pr.get("rows", [])}
+    base_pairs = {(r.get("item_id"), r.get("seed")) for r in base.get("rows", [])}
+    if base_pairs and pr_pairs != base_pairs:
+        problems.append("PR (item_id, seed) set differs from baseline")
+
+    # 4. Evaluator failures and None values for spec metrics
+    if pr.get("evaluator_failures"):
+        problems.append(f"{len(pr['evaluator_failures'])} evaluator failure(s)")
+    spec_metric_ids = {m["id"] for m in spec.get("metrics", [])}
+    for r in pr.get("rows", []):
+        found_none = False
+        for mid in spec_metric_ids:
+            if mid in r and r[mid] is None:
+                problems.append(f"row {r.get('item_id')}@{r.get('seed')} has None for spec metric {mid}")
+                found_none = True
+                break
+        if found_none:
+            break
+
+    # 5. Item slice tags match baseline
+    base_slices: dict[str, tuple[str, ...]] = {}
+    for r in base.get("rows", []):
+        iid = r.get("item_id")
+        if iid and iid not in base_slices:
+            base_slices[iid] = tuple(sorted(r.get("slices") or []))
+    for r in pr.get("rows", []):
+        iid = r.get("item_id")
+        if iid in base_slices:
+            pr_sl = tuple(sorted(r.get("slices") or []))
+            if pr_sl != base_slices[iid]:
+                problems.append(f"item {iid} slice tags {pr_sl} != baseline {base_slices[iid]}")
+                break
+
+    # 6. Ratchet check against base_spec
+    if base_spec and spec.get("eval_set_version") == base_spec.get("eval_set_version"):
+        base_metrics = {m["id"]: m for m in base_spec.get("metrics", [])}
+        cur_metrics = {m["id"]: m for m in spec.get("metrics", [])}
+        for mid, bm in base_metrics.items():
+            if mid not in cur_metrics:
+                problems.append(f"ratchet: metric {mid} dropped from spec")
+                continue
+            cm = cur_metrics[mid]
+            if bm.get("blocking") and not cm.get("blocking"):
+                problems.append(f"ratchet: metric {mid} blocking turned off")
+            bth = bm.get("threshold", {})
+            cth = cm.get("threshold", {})
+            if "min" in bth:
+                if "min" not in cth or cth["min"] < bth["min"]:
+                    problems.append(f"ratchet: metric {mid} min loosened from {bth['min']} to {cth.get('min')}")
+            if "max" in bth:
+                if "max" not in cth or cth["max"] > bth["max"]:
+                    problems.append(f"ratchet: metric {mid} max loosened from {bth['max']} to {cth.get('max')}")
+            if bth.get("no_significant_drop") and not cth.get("no_significant_drop"):
+                problems.append(f"ratchet: metric {mid} dropped no_significant_drop")
+
+        base_slices_spec = {s["name"]: s for s in base_spec.get("slices", [])}
+        cur_slices_spec = {s["name"]: s for s in spec.get("slices", [])}
+        for sname, bs_s in base_slices_spec.items():
+            if sname not in cur_slices_spec:
+                problems.append(f"ratchet: slice {sname} dropped from spec")
+                continue
+            cs_s = cur_slices_spec[sname]
+            if bs_s.get("blocking") and not cs_s.get("blocking"):
+                problems.append(f"ratchet: slice {sname} blocking turned off")
+            if "min" in bs_s:
+                if "min" not in cs_s or cs_s["min"] < bs_s["min"]:
+                    problems.append(f"ratchet: slice {sname} min loosened from {bs_s['min']} to {cs_s.get('min')}")
+            if bs_s.get("no_significant_drop") and not cs_s.get("no_significant_drop"):
+                problems.append(f"ratchet: slice {sname} dropped no_significant_drop")
+
+    return problems
 
 
 def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]:
@@ -44,8 +128,46 @@ def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]
       - fail if below "min", or if no_significant_drop and the paired CI over the slice's items
         lies entirely below 0
     Return (blocked ids like "slice:money_movement/pass_rate", report lines)."""
-    # TODO M5
-    return [], []
+    blocked: list[str] = []
+    lines: list[str] = []
+    bs = spec.get("bootstrap", {})
+
+    for s in spec.get("slices", []):
+        name = s["name"]
+        metric = s["metric"]
+        slice_id = f"slice:{name}/{metric}"
+        a = per_item(pr, metric, slice_name=name)
+        b = per_item(base, metric, slice_name=name)
+        val = sum(a.values()) / len(a) if a else None
+        verdict, note = "ok", ""
+
+        if val is None:
+            verdict = "missing"
+        elif "min" in s and val < s["min"]:
+            verdict = "fail"
+
+        if s.get("no_significant_drop") and a and b:
+            keys = sorted(set(a) & set(b))
+            if keys:
+                d, lo, hi = stats.paired_bootstrap(
+                    [a[k] for k in keys],
+                    [b[k] for k in keys],
+                    n_resamples=bs.get("n_resamples", 1000),
+                    rng=bs.get("rng", 2027),
+                )
+                note = f"Δ {d:+.3f} CI [{lo:+.3f}, {hi:+.3f}]"
+                if hi < 0:
+                    verdict = "fail"
+
+        if verdict != "ok" and s.get("blocking"):
+            blocked.append(slice_id)
+
+        label = {"ok": "ok", "missing": "MISSING"}.get(verdict, "BLOCK" if s.get("blocking") else "warn")
+        val_str = f"{val:.4f}" if isinstance(val, (int, float)) else str(val)
+        th_dict = {k: v for k, v in s.items() if k not in ("name", "metric", "blocking")}
+        lines.append(f"  {slice_id:<22} {val_str:<8} {json.dumps(th_dict):<40} {note:<28} {label}")
+
+    return blocked, lines
 
 
 def check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> tuple[list[str], list[str]]:

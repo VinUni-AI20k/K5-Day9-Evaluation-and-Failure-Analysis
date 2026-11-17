@@ -1,6 +1,6 @@
 # Rubric (100 điểm = Core 60 · Advanced 25 · Expert 15)
 
-Bài cá nhân. Hạn nộp **theo LMS**: chấm nhánh `main` của bản fork, chỉ tính commit trước hạn. Core nên xong trên lớp; Advanced/Expert làm tiếp sau 17:00.
+Bài cá nhân. Hạn nộp **theo ca làm bài** (xem LMS của ca): chấm nhánh `main` của bản fork, chỉ tính commit trước hạn. Core nên xong trên lớp; Advanced/Expert làm tiếp sau buổi.
 
 ## Core — 60 (giảng viên chấm theo checklist + test công khai)
 | Hạng mục | Điểm | Đạt đủ khi |

@@ -19,7 +19,7 @@ Tham chiếu: `pass_rate` Δ −0.271, CI [−0.500, −0.057] ⇒ BLOCK. `paire
 Sau khi hoàn thành bài tập và commit baseline M4, workflow `eval-gate` chạy test học viên và kiểm tra eval set. Gate phải trả exit 0 cho `swarm` của PR và `fixed`. Với `seeded_regression`, gate phải trả exit 1 và ghi rõ `pass_rate` trong danh sách metric bị chặn. Cả ba dùng chung metric spec và baseline.
 
 ---
-## Sau 17:00 (Advanced / Expert, tới hạn nộp) — giảng viên chạy `instructor/grade_hidden.py`
+## Sau buổi (Advanced / Expert, tới hạn nộp của ca) — giảng viên chạy `instructor/grade_hidden.py`
 
 **M5 — Eval set v2 + slice.** `evalset --v2 --build` sạch: mọi cơ chế trong pack đã map sang mã FM, mỗi FM bị tấn công ≥3 item. `slice_regression` có `pass_rate` trung bình vẫn trên sàn, CI chạm 0; chỉ slice `money_movement` chặn được nó.
 

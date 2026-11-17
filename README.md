@@ -3,7 +3,9 @@
 > Nối tiếp Lab 8. Lab 8 trả lời "agent có chạy không"; Lab 9 trả lời **"làm sao biết bản mới tốt hơn — và chặn được bản tệ trước khi merge"**.
 > Không cần API key: MockLLM + judge replay. **Không Langfuse / OTel** (observability học ở Day 14).
 
-## Bạn sẽ làm gì (13:30–17:00 trên lớp · **bài cá nhân** · hạn nộp theo LMS)
+## Bạn sẽ làm gì (**bài cá nhân** · giờ trên lớp và hạn nộp theo ca làm bài, xem LMS của ca)
+Giờ trong bảng là của ca 13:30–17:00; ca khác dời các mốc tương ứng.
+
 | M | Giờ | Việc | Lệnh kiểm tra |
 |---|---|---|---|
 | M0 | 13:30 | Fork repo này, chép `src/` của repo gốc Day 8 vào, cài đặt và sinh eval set | `python -m lab9.smoke` và `python -m lab9.evalset --build` |

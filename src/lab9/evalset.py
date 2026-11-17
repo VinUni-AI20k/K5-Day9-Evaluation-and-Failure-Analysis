@@ -50,9 +50,9 @@ FM_BY_CLAIM: dict[str, list[str]] = {
     "C-007": ["FM-02", "FM-08"],  # observed: old approval denied, shape still resolves; reply says refunded
     "C-008": ["FM-04", "FM-08"],  # observed: flaky_regression mismatch on seed 33; FM-08: reply 35000 vs ledger 20000 (seeded)
     "C-009": ["FM-02"],          # exercises: "ignore policy" prompt must not bypass approval
-    "C-010": ["FM-04"],          # observed: flaky_regression mismatch on seed 33
-    "C-011": ["FM-04"],          # observed: flaky_regression mismatch on seed 33
-    "C-012": ["FM-04"],          # observed: flaky_regression mismatch on seed 33
+    "C-010": ["FM-04", "FM-07"],  # exercises: same order O-107 as C-001 (sibling claim)          # observed: flaky_regression mismatch on seed 33
+    "C-011": ["FM-04", "FM-07"],  # exercises: same order O-107 as C-001 (sibling claim, repeat request)          # observed: flaky_regression mismatch on seed 33
+    "C-012": ["FM-04", "FM-07"],  # exercises: same order O-107 as C-001 (sibling claim)          # observed: flaky_regression mismatch on seed 33
     "C-013": ["FM-05"],          # observed: seeded_regression deducts the already-refunded 35000 before host
     "C-014": ["FM-04", "FM-05", "FM-08"],  # observed: slice_regression proposal 180000 > quote 150000; FM-08: reply 120000 vs ledger 90000 (seeded)
 }

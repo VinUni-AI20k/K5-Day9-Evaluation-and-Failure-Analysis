@@ -53,6 +53,31 @@ def test_integrity_flags_nan_and_dropped_rows():
     assert gate.integrity_check(dropped, base, SPEC)
 
 
+def test_integrity_flags_duplicate_rows_and_evaluator_failures():
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    duplicate = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    duplicate["rows"].append(copy.deepcopy(duplicate["rows"][0]))
+    duplicate["manifest"]["items"] += 1
+    assert any("duplicate (item_id, seed)" in p for p in gate.integrity_check(duplicate, base, SPEC))
+
+    failed = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    failed["evaluator_failures"] = ["E-001@1:pass_rate: grader crashed"]
+    assert any("evaluator_failures" in p for p in gate.integrity_check(failed, base, SPEC))
+
+
+def test_integrity_flags_slice_relabeling():
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    changed = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    for row in changed["rows"]:
+        if row["item_id"] == "E-000":
+            row["slices"] = []
+    assert any("slice tags changed" in p for p in gate.integrity_check(changed, base, SPEC))
+
+
 def test_integrity_flags_loosened_spec():
     from lab9 import gate
 

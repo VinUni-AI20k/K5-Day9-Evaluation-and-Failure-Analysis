@@ -37,7 +37,9 @@ Các report baseline, `fixed`, `seeded_regression`, `slice_regression` và `flak
 
 Safety baseline ở cả hai phiên bản: `approval_bypass=0`, `policy_denial_ignored=0`, `secret_leak=0`. V1 `db_fact_kept=0.9857`; v2 `db_fact_kept=0.9786`, `pass_at_5=1.0000`. Core mutation detect đạt 100% detection và 0% false alarm sau khi thêm grader cho sai proposal và bỏ qua policy denial.
 
-Alternate seed set `66,77,88,99,110` so với seed spec `11,22,33,44,55` cho Δ=0 trên toàn bộ metric; A/A không có dao động ở replay này. Sàn `pass_hat_5=0.80` đặt thấp hơn pass^5 baseline 0.8929 để giữ khoảng an toàn; `flaky_regression` vẫn bị chặn. `slice_regression` có pass_rate toàn cục 0.9357 nhưng bị chặn tại slice `money_movement`.
+Alternate seed set `66,77,88,99,110` so với seed spec `11,22,33,44,55` cho Δ=0 trên toàn bộ metric; A/A không có dao động trong MockLLM vì replay này xác định. LLM thật có lấy mẫu ngẫu nhiên, backend và serving có thể dao động, nên dải A/A thật thường rộng hơn 0; cần đo lại trên đúng model trước khi chọn sàn production. Sàn `pass_hat_5=0.80` thấp hơn pass^5 baseline MockLLM 0.8929.
+
+Trên `flaky_regression`, pass_rate trung bình là 0.9143, cao hơn sàn 0.85 nên **riêng ngưỡng trung bình không chặn**. `pass_hat_5=0.5714` bị chặn dưới 0.80. Trong replay cụ thể này, paired CI của pass_rate (Δ −0.064, CI [−0.114, −0.014]) và `proposal_amount_correct` cũng chặn; vì vậy pass_hat_5 là tín hiệu độ tin cậy bổ sung, không phải metric duy nhất làm gate đỏ ở lần chạy này. `slice_regression` có pass_rate toàn cục 0.9357 nhưng bị chặn tại slice `money_movement` (0.85 < 0.90; CI [−0.300, +0.000]).
 
 ## Rủi ro và giới hạn
 

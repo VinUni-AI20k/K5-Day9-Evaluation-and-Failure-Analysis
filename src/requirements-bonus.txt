@@ -1,0 +1,2 @@
+# Optional bonus only: install in a separate virtual environment.
+deepeval>=3,<4

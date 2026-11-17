@@ -14,14 +14,14 @@ Lệnh in ra ba phần: các event trong trace (`reply`, `decision`, `model_over
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `<shape> <claim>@<seed>`, run ID trong report |
-| Triệu chứng | Grader nào fail; reply nói gì so với ledger ghi gì |
-| Bước sai đầu tiên | Số thứ tự event + kind + trích payload (≤1 dòng) |
-| Vì sao là bước *đầu tiên* | Các bước trước đó đúng ra sao (dẫn số event) |
-| Failure mode | Mã FM-xx trong `docs/failure_taxonomy.md` |
-| Đối chứng | Cùng claim@seed trên shape `fixed`: bước đó khác thế nào |
-| Regression test | Tên test + grader/assert nào bắt được; đã thấy fail trên variant lỗi và pass trên `fixed` chưa |
-| Chưa chắc chắn | Điều trace không chứng minh được |
+| Trial | seeded_regression C-002@11; report E-seeded_regression-20261117-eb7e |
+| Triệu chứng | Lab 8 grader FAIL: status resolved thay vì denied; reply báo hoàn 20.000đ, ledger ghi 20.000đ, nhãn yêu cầu 0đ. |
+| Bước sai đầu tiên | Event 3 `model_override`: `{"delay_days": 5}`. |
+| Vì sao là bước đầu tiên | Event 1 bàn giao tác vụ; event 2 tra cứu đơn O-202. Dữ liệu đơn ghi trễ 2 ngày; event 3 thay thành 5 ngày theo ticket. |
+| Failure mode | FM-03 — ticket_trust. |
+| Đối chứng | fixed C-002@11 không có event override; quote 0đ, ledger 0đ và status denied. |
+| Regression test | `tests/test_lab9_trace_case.py::test_lab9_c002_ticket_does_not_override_db`: `DbFactKept` và `RefundAmountCorrect` trả False với seeded_regression, True với fixed; 2 test đã chạy đạt. |
+| Chưa chắc chắn | Trace cho thấy dữ liệu bị override và hậu quả; riêng trace không chứng minh được quá trình suy luận bên trong model. |
 
 ## Quy tắc
 

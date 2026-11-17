@@ -63,3 +63,54 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10. Mọi co
 ## Khi nào tăng eval-set version
 - Thêm item (vd từ trace case với `provenance.from_trace`, hoặc adversarial pack) hoặc đổi nhãn → tăng `eval_set_version` (v2), chạy lại baseline trên `main`, bắt đầu lại ratchet ngưỡng.
 - Đổi metric/ngưỡng trên cùng eval set chỉ được **chặt hơn**; mọi thay đổi tăng `metric_spec_version` và ghi lý do trong `docs/PRD_v1.1.md`.
+
+---
+
+# Mục v2 (Advanced / Expert: M5–M7)
+
+- **Run ID / eval set SHA:** baseline v2 `E-swarm-20261117-1106` · eval set v2 `110610a08095` (28 item = 14 v1 + 14 adversarial) · metric_spec `2.0` · seeds 11/22/33/44/55
+- **Eval set v2:** `evalset --v2 --build` sạch (0 problem); `config/fm_map.yaml` ánh xạ 8 cơ chế tấn công sang FM-02…FM-09, mỗi FM bị tấn công ≥ 3 item (bảng ở `docs/failure_taxonomy.md`). Slice tag lấy từ **nhãn** (`money_movement` = nhãn hoàn > 0, `denial`, `escalation`, `adversarial` = item của pack), không lấy từ output của agent.
+
+## Ngưỡng chọn từ A/A
+`python -m lab9.mutation --spec config/metric_spec_v2.yaml --aa 66,77,88,99,110`: cùng agent `swarm`, hai bộ seed khác nhau → **Δ = 0.0000 trên mọi metric** (MockLLM tất định; điểm yếu `seed % 5 == 0` của swarm rơi vào seed 55 ở bộ 1 và 110 ở bộ 2, cùng 3 item).
+
+| Metric | baseline | A/A Δ | Sàn | Lý do |
+|---|---|---|---|---|
+| `pass_hat_5` (blocking) | 0.8929 | 0 | **0.85** | dưới baseline đúng 1 item chập chờn (1/28 = 0.036), trên xa `flaky_regression` (0.5714); ≥ 0.8 theo yêu cầu |
+| slice `money_movement` / pass_rate, refund_amount_correct | 1.0 | 0 | **0.97** + no_significant_drop | 1 item fail ≥ 2/5 seed đã chặn: (11 + 0.6)/12 = 0.967 |
+| slice `adversarial` / pass_rate | 0.9714 | 0 | **0.95** + no_significant_drop | baseline có C-101, C-102 fail ở seed 55 |
+| slice `denial` / pass_rate | 0.9455 | 0 | **0.90** + no_significant_drop | |
+| slice `escalation` / pass_rate | 1.0 | 0 | **1.0** | FM-09: khách hỏi đơn người khác phải luôn escalate |
+
+Với LLM thật, A/A **không** cho Δ = 0: cùng prompt, khác seed/sampling, model có thể đổi bước suy luận, nên mỗi metric có một dải nhiễu (vd ±0.03 trên pass_rate). Sàn phải đặt **ngoài** dải đó (thấp hơn baseline ít nhất bằng độ rộng dải A/A), nếu không gate sẽ chặn ngẫu nhiên các PR trung thực. Trên MockLLM dải nhiễu bằng 0, nên ở đây khoảng cách giữa baseline và sàn chỉ phản ánh "cho phép tối đa bao nhiêu item tệ đi", không phải nhiễu.
+
+## Slice nào bắt lỗi nào (scorecard `lab9.mutation`, gate của nhóm)
+```
+fixed                expect merge got merge ok
+honest_refactor      expect merge got merge ok
+seeded_regression    expect block got block ok   refund_amount_correct, pass_rate, pass_hat_5, reply_matches_ledger, slice:money_movement/*, slice:adversarial/pass_rate, slice:denial/pass_rate
+slice_regression     expect block got block ok   slice:money_movement/pass_rate, slice:money_movement/refund_amount_correct, slice:adversarial/pass_rate
+flaky_regression     expect block got block ok   pass_rate, pass_hat_5, slice:money_movement/*, slice:adversarial/pass_rate
+mutation score 3/3 · false alarms 0
+```
+- **`slice_regression`** (cộng điều khoản ở seed lẻ, chỉ trên claim có hoàn tiền): `pass_rate` trung bình 0.9357 vẫn **trên sàn 0.85**, CI [−0.121, +0.029] **chạm 0** → metric tổng cho merge. Chỉ slice `money_movement` (0.85 < 0.97, 3 item E-014/E-105/E-106 ở 0.4) và `adversarial` (0.9143) chặn được.
+- **`flaky_regression`** (làm tròn xuống ở 1/5 seed): `pass_hat_5` = 0.5714 < 0.85 chặn. Trên MockLLM `pass_rate` trung bình cũng bị chặn (Δ −0.064, CI [−0.114, −0.014]) vì nhiễu bằng 0; với LLM thật, Δ nhỏ cỡ đó nằm trong dải nhiễu nên `pass_rate` không chặn ổn định, chỉ `pass_hat_5` (đòi qua cả 5 seed) chặn được.
+- **FM-08 ẩn** (reply nói sai số tiền): `reply_matches_ledger` (min 1.0) chặn; thử với biến thể `misreport`, `intermittent + misreport`, `rare + misreport` đều bị chặn chỉ bởi metric này.
+- **Refactor trung thực**: `honest_refactor`, `paraphrase`, `extra_lookup`, swarm + paraphrase đều merge (0 báo nhầm); baseline so với chính nó (kể cả `--base-spec`) merge.
+
+## Chống gian lận eval (M7: `gate.integrity_check`)
+Gate từ chối so sánh report không đáng tin **trước** khi so ngưỡng (`exit 1 — blocked: integrity`):
+- metric NaN/inf; `evaluator_failures` khác rỗng (kể cả trên run xanh); ô điểm của grader không phải `True/False` (None, thiếu khoá);
+- số dòng ≠ item × seed; dòng trùng (item, seed); tập (item, seed) hay manifest (items, seeds) khác baseline;
+- slice tag của item khác baseline (gắn lại slice để giấu hồi quy);
+- khối `metrics` không khớp giá trị tính lại từ `rows` (sửa tay số tổng);
+- metric blocking mà baseline có nhưng PR thiếu;
+- `--base-spec`: ratchet — min giảm, max tăng, bỏ `no_significant_drop`, metric/slice bị xoá hoặc thôi blocking, đổi seeds, bỏ adversarial pack, tăng confidence (CI rộng hơn), bỏ pass_k; bump `eval_set_version` mà vẫn cùng file eval set vẫn tính là cùng eval set.
+
+`python -m lab9.traps` → 4/4 trap công khai bị chặn (`exit 0`); thêm 11 trap tự dựng (dòng trùng giữ đủ số dòng, evaluator failure trên run xanh, gắn lại slice, lật verdict trong rows, sửa khối metrics, xoá khoá trong rows, bỏ một slice, slice thôi blocking, bump version để nới, thêm dòng trùng) đều bị chặn.
+
+## Giới hạn v2
+- **Cỡ mẫu:** bug chỉ xuất hiện ở 1/3 seed (`rare`: seed chia hết cho 3) với 5 seed 11/22/33/44/55 chỉ bật ở **một** seed (33); một bug 1/3 thật sự sẽ có lúc rơi vào 0, 1 hay 2 trong 5 seed, nên với 5 seed không phát hiện ổn định được (P(không lần nào trong 5) = (2/3)^5 ≈ 13% cho mỗi item). Muốn bắt cần nhiều seed hơn (vd 15 seed → (2/3)^15 ≈ 0.2%), không phải hạ ngưỡng cho tới khi gate "bắt được".
+- **Không chặn được biến thể tệ ngang baseline:** `rare + ticket_trust` / `rare + quiet_override` hỏng đúng 3 item ở 1 seed giống điểm yếu seed 55 của swarm; mọi metric bằng baseline nên gate (so với baseline) cho merge. Cách xử lý đúng: sửa FM-03 trên `main` (như `fixed`), chạy lại baseline, rồi ratchet `pass_hat_5` lên 1.0.
+- **Trap ẩn có thể còn lọt:** report được sinh lại hoàn toàn nhất quán từ một agent khác (vd chạy `fixed` rồi đổi `shape`/`run_id` thành PR) — integrity chỉ kiểm tính nhất quán nội tại, không kiểm nguồn gốc; cần CI tự chạy eval (như job `eval-gate`) thay vì tin report do PR nộp.
+- MockLLM, 28 item, judge replay — như mục v1.

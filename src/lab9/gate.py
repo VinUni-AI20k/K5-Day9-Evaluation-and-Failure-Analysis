@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from lab8.console import utf8_stdio
@@ -33,8 +34,86 @@ def integrity_check(pr: dict, base: dict, spec: dict, base_spec: dict | None = N
         including dropping no_significant_drop)
       - an item's slice tags in PR rows differ from the baseline's (relabelling an item out of a
         slice hides its regression from the slice gate)"""
-    # TODO M7
-    return []
+    problems: list[str] = []
+
+    # 1. Check for NaN or inf in metrics
+    for metric_name, metric_value in pr.get("metrics", {}).items():
+        if isinstance(metric_value, float):
+            if math.isnan(metric_value) or math.isinf(metric_value):
+                problems.append(f"metric {metric_name} has invalid value {metric_value}")
+
+    # 2. Check row count against manifest
+    manifest = pr.get("manifest", {})
+    manifest_item_count = manifest.get("items")
+    manifest_seeds = manifest.get("seeds", [])
+    if manifest_item_count is not None and manifest_seeds:
+        expected_total_rows = manifest_item_count * len(manifest_seeds)
+        actual_total_rows = len(pr.get("rows", []))
+        if actual_total_rows != expected_total_rows:
+            problems.append(f"expected {expected_total_rows} rows from manifest, got {actual_total_rows}")
+
+    # 3. Check (item_id, seed) set against baseline
+    pr_case_set = {(row["item_id"], row["seed"]) for row in pr.get("rows", [])}
+    base_case_set = {(row["item_id"], row["seed"]) for row in base.get("rows", [])}
+    if pr_case_set != base_case_set:
+        problems.append("PR (item_id, seed) cases differ from baseline cases")
+
+    # 4. Check evaluator failures and missing values in rows for graded metrics
+    if pr.get("evaluator_failures"):
+        problems.append(f"PR has {len(pr['evaluator_failures'])} evaluator failure(s)")
+
+    spec_metric_ids = [m["id"] for m in spec.get("metrics", [])]
+    for row in pr.get("rows", []):
+        for metric_id in spec_metric_ids:
+            if metric_id in row and row[metric_id] is None:
+                problems.append(f"row {row.get('item_id')}@{row.get('seed')} has None for metric {metric_id}")
+
+    # 5. Check ratchet against base_spec
+    if base_spec is not None:
+        if spec.get("eval_set_version") == base_spec.get("eval_set_version"):
+            base_metrics_map = {m["id"]: m for m in base_spec.get("metrics", [])}
+            spec_metrics_map = {m["id"]: m for m in spec.get("metrics", [])}
+            for base_metric_id, base_metric in base_metrics_map.items():
+                if base_metric_id not in spec_metrics_map:
+                    problems.append(f"metric {base_metric_id} from base_spec missing in spec")
+                else:
+                    spec_metric = spec_metrics_map[base_metric_id]
+                    if base_metric.get("blocking") and not spec_metric.get("blocking"):
+                        problems.append(f"metric {base_metric_id} blocking was disabled")
+                    base_threshold = base_metric.get("threshold", {})
+                    spec_threshold = spec_metric.get("threshold", {})
+                    if "min" in base_threshold:
+                        if "min" not in spec_threshold or spec_threshold["min"] < base_threshold["min"]:
+                            problems.append(f"metric {base_metric_id} min threshold was loosened")
+                    if "max" in base_threshold:
+                        if "max" not in spec_threshold or spec_threshold["max"] > base_threshold["max"]:
+                            problems.append(f"metric {base_metric_id} max threshold was loosened")
+                    if base_threshold.get("no_significant_drop") and not spec_threshold.get("no_significant_drop"):
+                        problems.append(f"metric {base_metric_id} dropped no_significant_drop")
+
+            base_slices_map = {s["name"]: s for s in base_spec.get("slices", [])}
+            spec_slices_map = {s["name"]: s for s in spec.get("slices", [])}
+            for base_slice_name, base_slice in base_slices_map.items():
+                if base_slice_name not in spec_slices_map:
+                    problems.append(f"slice {base_slice_name} from base_spec missing in spec")
+                else:
+                    spec_slice = spec_slices_map[base_slice_name]
+                    if base_slice.get("blocking") and not spec_slice.get("blocking"):
+                        problems.append(f"slice {base_slice_name} blocking was disabled")
+                    if "min" in base_slice:
+                        if "min" not in spec_slice or spec_slice["min"] < base_slice["min"]:
+                            problems.append(f"slice {base_slice_name} min threshold was loosened")
+                    if base_slice.get("no_significant_drop") and not spec_slice.get("no_significant_drop"):
+                        problems.append(f"slice {base_slice_name} dropped no_significant_drop")
+
+    # 6. Check slice tags consistency
+    pr_item_slices = {row["item_id"]: set(row.get("slices", [])) for row in pr.get("rows", [])}
+    base_item_slices = {row["item_id"]: set(row.get("slices", [])) for row in base.get("rows", [])}
+    for item_id, base_tags in base_item_slices.items():
+        if item_id in pr_item_slices and pr_item_slices[item_id] != base_tags:
+            problems.append(f"item {item_id} slice tags differ from baseline")
+
+    return problems
 
 
 def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]:
@@ -44,8 +123,59 @@ def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]
       - fail if below "min", or if no_significant_drop and the paired CI over the slice's items
         lies entirely below 0
     Return (blocked ids like "slice:money_movement/pass_rate", report lines)."""
-    # TODO M5
-    return [], []
+    blocked_slices: list[str] = []
+    report_lines: list[str] = []
+    bootstrap_config = spec.get("bootstrap", {})
+
+    for slice_spec in spec.get("slices", []):
+        slice_name = slice_spec["name"]
+        metric_id = slice_spec.get("metric", "pass_rate")
+        min_threshold = slice_spec.get("min")
+        no_significant_drop = slice_spec.get("no_significant_drop", False)
+        is_blocking = slice_spec.get("blocking", True)
+
+        pr_items = per_item(pr, metric_id, slice_name=slice_name)
+        base_items = per_item(base, metric_id, slice_name=slice_name)
+
+        if pr_items:
+            slice_mean = float(sum(pr_items.values()) / len(pr_items))
+        else:
+            slice_mean = None
+
+        verdict = "ok"
+        difference_note = ""
+
+        if slice_mean is None:
+            verdict = "missing"
+        else:
+            if min_threshold is not None and slice_mean < min_threshold:
+                verdict = "fail"
+
+            if no_significant_drop:
+                common_keys = sorted(set(pr_items.keys()) & set(base_items.keys()))
+                if common_keys:
+                    diff_mean, ci_low, ci_high = stats.paired_bootstrap(
+                        [pr_items[k] for k in common_keys],
+                        [base_items[k] for k in common_keys],
+                        n_resamples=bootstrap_config.get("n_resamples", 1000),
+                        rng=bootstrap_config.get("rng", 2027),
+                    )
+                    difference_note = f"Δ {diff_mean:+.3f} CI [{ci_low:+.3f}, {ci_high:+.3f}]"
+                    if ci_high < 0.0:
+                        verdict = "fail"
+
+        slice_id = f"slice:{slice_name}/{metric_id}"
+        if verdict != "ok" and is_blocking:
+            blocked_slices.append(slice_id)
+
+        label_verdict = {"ok": "ok", "missing": "MISSING"}.get(
+            verdict, "BLOCK" if is_blocking else "warn"
+        )
+        report_lines.append(
+            f"  {slice_id:<22} {slice_mean!s:<8} {json.dumps(slice_spec):<40} {difference_note:<28} {label_verdict}"
+        )
+
+    return blocked_slices, report_lines
 
 
 def check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> tuple[list[str], list[str]]:

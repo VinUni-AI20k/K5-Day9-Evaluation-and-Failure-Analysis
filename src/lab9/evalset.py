@@ -28,6 +28,12 @@ REQUIRED = ("item_id", "claim_id", "failure_modes", "provenance", "split", "eval
 
 
 FM_CODE = re.compile(r"FM-\d{2}")
+MATRIX_FAILURES = {
+    "T01": ["FM-01"], "T02": ["FM-03"], "T03": ["FM-04"], "T04": ["FM-02"],
+    "T05": ["FM-09", "FM-01"], "T06": ["FM-06"], "T07": ["FM-02"],
+    "T08": ["FM-08"], "T09": ["FM-03"], "T10": ["FM-01"], "T11": ["FM-05"],
+    "T10": ["FM-01", "FM-07"], "T12": ["FM-07"], "T13": ["FM-05"], "T14": ["FM-04", "FM-05"],
+}
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -46,11 +52,10 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
         items.append({
             "item_id": item_id,
             "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "failure_modes": MATRIX_FAILURES.get(str(claim.get("matrix_id")), ["FM-03"]),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
-                           "label_by": "lab8_matrix", "checked_by": None},
+                           "label_by": "lab8_matrix", "checked_by": "taxonomy_trace_review"},
             "split": "regression",
             "eval_set_version": VERSION,
         })
@@ -89,7 +94,10 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
         items.append({
             "item_id": f"E-{claim['claim_id'][2:]}",   # C-105 -> E-105
             "claim_id": claim["claim_id"],
-            "failure_modes": [mapping.get(m) or f"UNMAPPED:{m}" for m in claim["mechanisms"]],
+            "failure_modes": [fm for mechanism in claim["mechanisms"]
+                              for fm in ((mapping.get(mechanism) if isinstance(mapping.get(mechanism), list)
+                                          else [mapping.get(mechanism)]) if mapping.get(mechanism) else
+                                         [f"UNMAPPED:{mechanism}"])],
             "provenance": {"source": "instructor_adversarial", "matrix_id": None, "from_trace": None,
                            "generator": f"attack:{claim['attack']}", "label_by": "instructor",
                            "checked_by": "fixed_shape_replay"},

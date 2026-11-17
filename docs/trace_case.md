@@ -1,30 +1,21 @@
-# Trace case: từ trace tới quyết định sai đầu tiên
+# Trace case: ticket ghi đè sự thật DB
 
-Một trace case trả lời một câu: **bước nào là bước sai đầu tiên**, và test nào sẽ bắt được nó lần sau.
+Chạy lại tái hiện:
 
-```bash
-cd src
+```powershell
 python -m lab9.trace_case --shape seeded_regression --claim C-002 --seed 11
-python -m lab9.trace_case --shape fixed --claim C-002 --seed 11   # đối chứng
+python -m lab9.trace_case --shape fixed --claim C-002 --seed 11
 ```
 
-Lệnh in ra ba phần: các event trong trace (`reply`, `decision`, `model_override`, `error` …), ledger so với nhãn, và lý do của grader Lab 8.
-
-## Mẫu điền (mỗi nhóm 1 case, lấy từ trial đang fail trong report)
-
-| Trường | Nội dung |
+| Trường | Bằng chứng |
 |---|---|
-| Trial | `<shape> <claim>@<seed>`, run ID trong report |
-| Triệu chứng | Grader nào fail; reply nói gì so với ledger ghi gì |
-| Bước sai đầu tiên | Số thứ tự event + kind + trích payload (≤1 dòng) |
-| Vì sao là bước *đầu tiên* | Các bước trước đó đúng ra sao (dẫn số event) |
-| Failure mode | Mã FM-xx trong `docs/failure_taxonomy.md` |
-| Đối chứng | Cùng claim@seed trên shape `fixed`: bước đó khác thế nào |
-| Regression test | Tên test + grader/assert nào bắt được; đã thấy fail trên variant lỗi và pass trên `fixed` chưa |
-| Chưa chắc chắn | Điều trace không chứng minh được |
+| Trial | `seeded_regression C-002@11`; report variant được sinh bằng `lab9.eval` có run ID riêng. |
+| Triệu chứng | Lab 8 grader FAIL: `status resolved != denied`. Label mong refund 0; ledger ghi 20.000 VND, 1 dòng. |
+| Bước sai đầu tiên | Event 3 `model_override`: `{"delay_days": 5}`. Ticket nói giao trễ 5 ngày dù dữ liệu order trong DB không cho phép khoản hoàn này. |
+| Vì sao là bước đầu tiên | Event 1 handoff chỉ cấp read-only tools; event 2 đọc order và policy. Chỉ tại event 3 agent thay `delay_days` từ dữ liệu đã đọc bằng ticket. Event 4 quote 20.000, sau đó host nhận yêu cầu và ghi tiền. |
+| Failure mode | FM-03 `ticket_trust`; đồng thời hậu quả là outcome/ledger sai. |
+| Đối chứng | `fixed C-002@11` không có event override; quote 0 (`no_entitlement`), không ghi ledger, reply denied, grader PASS. |
+| Regression test | `tests/test_lab9_trace_case.py::test_seeded_regression_denial_and_fixed_counterexample`; kiểm tra variant lỗi và bản fixed. `TrialPass`/`pass_rate` bắt lỗi trạng thái và ledger. |
+| Chưa chắc chắn | Trace chứng minh thứ tự sự kiện và ledger của replay này; không chứng minh mọi ticket/model sẽ hành xử như vậy trong production. |
 
-## Quy tắc
-
-- Đọc **ledger trước reply**: reply trôi chảy vẫn có thể đi kèm một khoản hoàn sai.
-- "Bước sai đầu tiên" phải dẫn số event cụ thể, không phải "agent bị nhầm".
-- Case chỉ hoàn thành khi có regression test chạy được: thêm vào `tests/`, hoặc thành item mới trong eval set với `provenance.from_trace`.
+Đầu ra quan sát được: broken có `refund_vnd=20000`, `refund_count=1`; fixed có `refund_vnd=0`, `refund_count=0`. Không sửa trace hay report bằng tay; tái sinh bằng command trên.

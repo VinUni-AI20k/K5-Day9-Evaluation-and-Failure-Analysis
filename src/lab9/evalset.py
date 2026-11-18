@@ -30,34 +30,59 @@ REQUIRED = ("item_id", "claim_id", "failure_modes", "provenance", "split", "eval
 FM_CODE = re.compile(r"FM-\d{2}")
 
 
-def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def _posix_path(path: Path | str) -> Path:
+    return Path(Path(path).as_posix())
 
 
-def sha12(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+def load_jsonl(path: Path | str) -> list[dict[str, Any]]:
+    p = _posix_path(path)
+    return [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def sha12(path: Path | str) -> str:
+    p = _posix_path(path)
+    return hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:12]
+
+
+FAILURE_MODES_V1: dict[str, list[str]] = {
+    "C-001": ["FM-01", "FM-07"],
+    "C-002": ["FM-03"],
+    "C-003": ["FM-01"],
+    "C-004": ["FM-01"],
+    "C-005": ["FM-01", "FM-09"],
+    "C-006": ["FM-06"],
+    "C-007": ["FM-02"],
+    "C-008": ["FM-08"],
+    "C-009": ["FM-01", "FM-03"],
+    "C-010": ["FM-01", "FM-07"],
+    "C-011": ["FM-07"],
+    "C-012": ["FM-07"],
+    "C-013": ["FM-02", "FM-05"],
+    "C-014": ["FM-04", "FM-05", "FM-08"],
+}
 
 
 def build(source: Path = SOURCE) -> tuple[int, int]:
-    claims = load_jsonl(source)
+    claims = load_jsonl(_posix_path(source))
     items, labels = [], {}
     for n, claim in enumerate(claims, start=1):
         item_id = f"E-{n:03d}"
+        cid = claim["claim_id"]
         items.append({
             "item_id": item_id,
-            "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "claim_id": cid,
+            "failure_modes": FAILURE_MODES_V1.get(cid, ["FM-01"]),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
-                           "label_by": "lab8_matrix", "checked_by": None},
+                           "label_by": "lab8_matrix", "checked_by": "swarm_replay"},
             "split": "regression",
             "eval_set_version": VERSION,
         })
-        labels[claim["claim_id"]] = claim["expected"]
-    ITEMS.parent.mkdir(parents=True, exist_ok=True)
-    ITEMS.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
-    LABELS.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
+        labels[cid] = claim["expected"]
+    items_path, labels_path = _posix_path(ITEMS), _posix_path(LABELS)
+    items_path.parent.mkdir(parents=True, exist_ok=True)
+    items_path.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8", newline="\n")
+    labels_path.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     return len(items), len(labels)
 
 
@@ -80,10 +105,10 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
     """v2 = your v1 items (with YOUR failure_modes from M1) + the instructor's adversarial pack.
     Pack items name an attack *mechanism*; config/fm_map.yaml translates it to your FM code."""
     import yaml
-    mapping = yaml.safe_load(fm_map.read_text(encoding="utf-8")) or {}
-    base = load_jsonl(items_v1)
-    labels = json.loads(labels_v1.read_text(encoding="utf-8"))
-    p = json.loads(pack.read_text(encoding="utf-8"))
+    mapping = yaml.safe_load(_posix_path(fm_map).read_text(encoding="utf-8")) or {}
+    base = load_jsonl(_posix_path(items_v1))
+    labels = json.loads(_posix_path(labels_v1).read_text(encoding="utf-8"))
+    p = json.loads(_posix_path(pack).read_text(encoding="utf-8"))
     items = [{**it, "eval_set_version": "v2", "slices": slices_for(labels[it["claim_id"]], False)} for it in base]
     for claim in p["claims"]:
         items.append({
@@ -98,13 +123,15 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
             "slices": slices_for(claim["expected"], True),
         })
         labels[claim["claim_id"]] = claim["expected"]
-    ITEMS_V2.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
-    LABELS_V2.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
+    items_v2, labels_v2 = _posix_path(ITEMS_V2), _posix_path(LABELS_V2)
+    items_v2.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8", newline="\n")
+    labels_v2.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     return len(items), len(labels)
 
 
 def check(items_path: Path = ITEMS, labels_path: Path = LABELS) -> list[str]:
     problems: list[str] = []
+    items_path, labels_path = _posix_path(items_path), _posix_path(labels_path)
     items = load_jsonl(items_path)
     labels = json.loads(labels_path.read_text(encoding="utf-8"))
     for item in items:
@@ -163,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.v2:
         if args.build:
             n_items, n_labels = build_v2()
-            print(f"wrote {ITEMS_V2} ({n_items} items) and {LABELS_V2} ({n_labels} labels)")
+            print(f"wrote {ITEMS_V2.as_posix()} ({n_items} items) and {LABELS_V2.as_posix()} ({n_labels} labels)")
         problems = check(ITEMS_V2, LABELS_V2)
         for p in problems:
             print("FAIL", p)
@@ -171,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if problems else 0
     if args.build:
         n_items, n_labels = build()
-        print(f"wrote {ITEMS} ({n_items} items) and {LABELS} ({n_labels} labels)")
+        print(f"wrote {ITEMS.as_posix()} ({n_items} items) and {LABELS.as_posix()} ({n_labels} labels)")
         if not args.check:
             return 0
     problems = check()

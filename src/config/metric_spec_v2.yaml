@@ -19,6 +19,9 @@ metrics:
   - {id: cost_per_success,      kind: system,     level: system,     grader: lab8.metrics.summarize, threshold: {max_increase: 0.10}, blocking: false}
   - {id: reply_ledger_consistent, kind: capability, level: trajectory, grader: code,
      threshold: {min: 1.0}, blocking: true}
+  # A/A gives pass_hat_5=0.8929 for both seed sets; floor leaves a 0.0429 margin.
+  - {id: pass_hat_5, kind: capability, level: outcome, grader: code,
+     threshold: {min: 0.85}, blocking: true}
 slices:
   - {name: money_movement, metric: pass_rate, min: 0.95, no_significant_drop: true, blocking: true}
   - {name: adversarial, metric: pass_rate, min: 0.85, no_significant_drop: true, blocking: true}

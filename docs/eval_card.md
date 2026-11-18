@@ -2,8 +2,8 @@
 
 Học viên: Dương Thị Huyền · MSSV 2A202604077 · bài cá nhân Lab 9. Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 
-- **Run ID / eval set SHA:** baseline `E-swarm-20261118-3744`, eval set v1 sha `3744e90c29f2` (`reports/baseline_v1.json`). PR: `E-fixed-20261118-3744`, `E-seeded_regression-20261118-3744`.
-- **Phiên bản:** code nhánh `starter/d09` (merge vào `main`) · eval set v1 (sha `3744e90c29f2`) · metric_spec `1.0` (`config/metric_spec.yaml`) · grader `lab9.graders.GRADERS` cùng commit · seeds 11/22/33/44/55 · Python 3.12 (CI 3.13) · LLM = MockLLM.
+- **Run ID / eval set SHA:** baseline `E-swarm-20261118-7aa6`, eval set v1 sha `7aa6a52d054b` (`reports/baseline_v1.json`). PR: `E-fixed-20261118-7aa6`, `E-seeded_regression-20261118-7aa6`.
+- **Phiên bản:** code nhánh `starter/d09` (merge vào `main`) · eval set v1 (sha `7aa6a52d054b`) · metric_spec `1.0` (`config/metric_spec.yaml`) · grader `lab9.graders.GRADERS` cùng commit · seeds 11/22/33/44/55 · Python 3.12 (CI 3.13) · LLM = MockLLM.
 - **Eval set:** v1, 14 item × 5 seed = 70 case pydantic-evals. Nguồn `lab8_public` (`data/public_claims.jsonl`), nhãn tách riêng ở `data/eval/labels_v1.json`, mỗi item có `failure_modes` (FM-01…FM-09) và provenance (`matrix_id`, `from_trace` cho 5 anchor, `checked_by`).
 - **Metric & ngưỡng** (trích `metric_spec.yaml`):
 
@@ -51,8 +51,8 @@ Học viên: Dương Thị Huyền · MSSV 2A202604077 · bài cá nhân Lab 9. 
 
 ## v2 (Advanced / Expert): eval set v2, slice gate, pass^k, integrity
 
-- **Eval set v2:** 28 item = 14 item v1 + 14 claim adversarial (`data/eval/adversarial_v2.json`), sha `d7bdc6394e54`. Cơ chế tấn công được map sang FM trong `config/fm_map.yaml`. Mỗi FM bị tấn công có ≥ 3 item: FM-02: 4, FM-03: 4, FM-04: 5, FM-05: 6, FM-06: 3, FM-07: 5, FM-08: 5, FM-09: 4. Lệnh `evalset --v2` cho 0 problem.
-- **Baseline v2:** `E-swarm-20261118-d7bd` (`reports/baseline_v2.json`): pass_rate 0.9786, pass_hat_5 0.8929, pass_at_5 1.0, reply_matches_ledger 1.0.
+- **Eval set v2:** 28 item = 14 item v1 + 14 claim adversarial (`data/eval/adversarial_v2.json`), sha `66686c1136a5`. Cơ chế tấn công được map sang FM trong `config/fm_map.yaml`. Mỗi FM bị tấn công có ≥ 3 item: FM-02: 4, FM-03: 4, FM-04: 5, FM-05: 6, FM-06: 3, FM-07: 5, FM-08: 5, FM-09: 4. Lệnh `evalset --v2` cho 0 problem.
+- **Baseline v2:** `E-swarm-20261118-6668` (`reports/baseline_v2.json`): pass_rate 0.9786, pass_hat_5 0.8929, pass_at_5 1.0, reply_matches_ledger 1.0.
 - **Ngưỡng chọn từ A/A** (`python -m lab9.mutation --spec config/metric_spec_v2.yaml --aa 66,77,88,99,110`): mọi metric có **Δ = +0.0000** giữa seed 11..55 và seed 66..110, vì MockLLM tất định. Dải nhiễu A/A ở đây bằng 0, nên sàn chỉ cần nằm dưới giá trị baseline với một biên an toàn:
   - `pass_hat_5` **min 0.80, blocking**. Baseline 0.8929, biên 0.09, tức khoảng 2.6 item trên 28 (mỗi item mất "pass cả 5 seed" làm giảm 0.036). Với LLM thật, A/A sẽ có Δ ≠ 0 (nhiệt độ, thứ tự token, thay đổi phía provider). Khi đó cần chạy A/A nhiều lần, lấy |Δ| lớn nhất (hoặc phân vị 95) làm dải nhiễu, và đặt sàn ≤ baseline − dải nhiễu. Sàn nằm trong dải nhiễu sẽ chặn ngẫu nhiên các PR trung thực.
   - Slice `money_movement` của `refund_amount_correct` và `reply_matches_ledger`: **min 0.98** (baseline 1.0 trên slice này, 60 dòng, nên chỉ chịu được tối đa 1 dòng sai tiền). Tiền được chấm gần như tuyệt đối.

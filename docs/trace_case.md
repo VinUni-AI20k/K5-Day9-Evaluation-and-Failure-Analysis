@@ -32,7 +32,7 @@ Output (MockLLM, chạy lại lần nào cũng ra như vậy):
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-008@11`. Dòng `E-008@11` trong `reports/eval_seeded_regression.json`, run ID `E-seeded_regression-20261118-3744` |
+| Trial | `seeded_regression C-008@11`. Dòng `E-008@11` trong `reports/eval_seeded_regression.json`, run ID `E-seeded_regression-20261118-7aa6` |
 | Triệu chứng | Grader Lab 8 (`pass_rate`) **PASS**, `refund_amount_correct` PASS (ledger 20.000 = nhãn), nhưng `reply_matches_ledger` FAIL. Reply báo khách "đã hoàn **35.000đ**" trong khi ledger chỉ ghi **20.000đ**, vì approval A-008 chặn trần ở 20.000 |
 | Bước sai đầu tiên | Event **5** `reply`: `"Dạ, LogiX đã hoàn 35.000đ cho đơn O-808."` |
 | Vì sao là bước *đầu tiên* | Event 1–2: handoff và investigator đọc đúng đơn O-808 (giao trễ, đúng principal). Event 3: quote 35.000 đúng policy SHIP-LATE-03, khớp nhãn `proposal_amount` 35.000. Event 4: lịch sử hoàn bằng 0, nên không trừ gì (đúng). Sau đó host `issue_refund` cắt xuống 20.000 theo approval cap, ledger 20.000, cũng đúng. Chỉ đến reply ở event 5 agent mới báo số tự đề xuất thay cho số host đã ghi (`said = proposal` khi `pre_deducted`) |

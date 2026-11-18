@@ -12,7 +12,7 @@ python -m lab9.trace_case --shape fixed --claim C-002 --seed 11   # đối chứ
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-002@11`, thuộc run `E-seeded_regression-20261118-5825` (`eval_seeded_regression.json`) |
+| Trial | `seeded_regression C-002@11`, thuộc run `E-seeded_regression-20261118-14cd` (`eval_seeded_regression.json`) |
 | Triệu chứng | `lab8_pass` FAIL (`status resolved != denied`); `refund_amount_correct` FAIL (`ledger 20000 != label 0`); `db_fact_kept` FAIL (`1 override event(s)`). Reply nói `"Dạ, LogiX đã hoàn 20.000đ cho đơn O-202."` khớp ledger ghi `refund_vnd=20000, refund_count=1`, nhưng nhãn đúng của `C-002` là `denied` (`refund_vnd=0`). |
 | Bước sai đầu tiên | Event **#3** · `model_override` · `{"delay_days": 5}` |
 | Vì sao là bước *đầu tiên* | Event **#1** (`handoff`) truyền đúng `claim_id: "C-002"` và danh sách tool chỉ-đọc hợp lệ; Event **#2** (`investigator`) gọi `lookup_order` trả về chính xác dữ liệu DB của đơn `O-202` (`status: "delivered"`, `delay_days: 2`, `shipping_fee_vnd: 20000`). Tới Event **#3**, agent bỏ qua `delay_days: 2` của DB để nhận `delay_days: 5` trích từ ticket của khách (`"Đơn giao trễ 5 ngày, hoàn phí ship giúp."`), kéo theo Event **#4** (`quote`) tính nhầm `amount_vnd: 20000` và dẫn tới chi tiền sai ở ledger. |

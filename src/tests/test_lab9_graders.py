@@ -48,3 +48,12 @@ def test_wrong_amount_in_ledger(graders):
 
 def test_override_event_breaks_db_fact(graders):
     assert graders.DbFactKept().evaluate(ctx(trial(events=[{"kind": "model_override", "payload": {}}]))).value is False
+
+@pytest.mark.parametrize("shape,expected", [("seeded_regression", False), ("fixed", True)])
+def test_ticket_override_regression(graders, shape, expected):
+    from lab9.trace_case import investigate
+
+    case = investigate(shape, "C-002", 11)
+    context = ctx(case["trial"], case["label"])
+    assert graders.DbFactKept().evaluate(context).value is expected
+    assert graders.RefundAmountCorrect().evaluate(context).value is expected

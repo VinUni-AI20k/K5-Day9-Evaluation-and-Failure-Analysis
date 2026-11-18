@@ -74,3 +74,40 @@ def test_slice_check_blocks_a_slice_below_floor():
     spec = dict(SPEC, slices=[{"name": "denial", "metric": "pass_rate", "min": 0.9, "blocking": True}])
     blocked, _ = gate.slice_check(_report(rows, {"pass_rate": 0.75}), base, spec)
     assert blocked == ["slice:denial/pass_rate"]
+
+@pytest.mark.parametrize("mutation", ["duplicate", "errors", "null", "slice_tags", "infinity"])
+def test_integrity_rejects_hidden_evidence(mutation):
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    report = copy.deepcopy(base)
+    if mutation == "duplicate":
+        report["rows"][-1] = copy.deepcopy(report["rows"][0])
+    elif mutation == "errors":
+        report["evaluator_failures"] = ["grader crashed on a passing trial"]
+    elif mutation == "null":
+        report["rows"][0]["pass_rate"] = None
+    elif mutation == "slice_tags":
+        report["rows"][0]["slices"] = []
+    else:
+        report["metrics"]["pass_rate"] = float("inf")
+    assert gate.integrity_check(report, base, SPEC)
+
+
+@pytest.mark.parametrize("mutation", ["remove", "disable", "drop_ci", "lower_floor"])
+def test_ratchet_preserves_slice_requirements(mutation):
+    from lab9 import gate
+
+    base = _report(copy.deepcopy(ROWS), {"pass_rate": 1.0})
+    original = dict(SPEC, slices=[{"name": "denial", "metric": "pass_rate", "min": 0.9,
+                                  "no_significant_drop": True, "blocking": True}])
+    changed = copy.deepcopy(original)
+    if mutation == "remove":
+        changed["slices"] = []
+    elif mutation == "disable":
+        changed["slices"][0]["blocking"] = False
+    elif mutation == "drop_ci":
+        changed["slices"][0].pop("no_significant_drop")
+    else:
+        changed["slices"][0]["min"] = 0.5
+    assert gate.integrity_check(base, base, changed, original)

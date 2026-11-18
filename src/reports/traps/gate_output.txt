@@ -1,0 +1,56 @@
+evaluator_errors_as_nan
+gate: PR E-slice_regression-20261118-c5b7 vs main E-swarm-20261118-c5b7 · eval set c5b7fd1076c0
+  INTEGRITY row E-014@11 has invalid refund_amount_correct
+  INTEGRITY row E-014@33 has invalid refund_amount_correct
+  INTEGRITY row E-014@55 has invalid refund_amount_correct
+  INTEGRITY row E-105@11 has invalid refund_amount_correct
+  INTEGRITY row E-105@33 has invalid refund_amount_correct
+  INTEGRITY row E-105@55 has invalid refund_amount_correct
+  INTEGRITY row E-106@11 has invalid refund_amount_correct
+  INTEGRITY row E-106@33 has invalid refund_amount_correct
+  INTEGRITY row E-106@55 has invalid refund_amount_correct
+  INTEGRITY row E-014@11 has invalid pass_rate
+  INTEGRITY row E-014@33 has invalid pass_rate
+  INTEGRITY row E-014@55 has invalid pass_rate
+  INTEGRITY row E-105@11 has invalid pass_rate
+  INTEGRITY row E-105@33 has invalid pass_rate
+  INTEGRITY row E-105@55 has invalid pass_rate
+  INTEGRITY row E-106@11 has invalid pass_rate
+  INTEGRITY row E-106@33 has invalid pass_rate
+  INTEGRITY row E-106@55 has invalid pass_rate
+exit 1 — blocked: integrity
+
+dropped_failing_rows
+gate: PR E-slice_regression-20261118-c5b7 vs main E-swarm-20261118-c5b7 · eval set c5b7fd1076c0
+  INTEGRITY row count differs from items x seeds
+  INTEGRITY item/seed pairs differ from baseline
+  INTEGRITY metric pass_at_3 is missing or non-finite
+  INTEGRITY metric pass_hat_3 is missing or non-finite
+  INTEGRITY metric pass_at_5 is missing or non-finite
+  INTEGRITY metric pass_hat_5 is missing or non-finite
+exit 1 — blocked: integrity
+
+cherry_picked_seeds
+gate: PR E-slice_regression-20261118-c5b7 vs main E-swarm-20261118-c5b7 · eval set c5b7fd1076c0
+  INTEGRITY item/seed pairs differ from baseline
+  INTEGRITY manifest seeds differ from baseline or contain duplicates
+  INTEGRITY metric pass_at_3 is missing or non-finite
+  INTEGRITY metric pass_hat_3 is missing or non-finite
+  INTEGRITY metric pass_at_5 is missing or non-finite
+  INTEGRITY metric pass_hat_5 is missing or non-finite
+exit 1 — blocked: integrity
+
+loosened_spec
+gate: PR E-slice_regression-20261118-c5b7 vs main E-swarm-20261118-c5b7 · eval set c5b7fd1076c0
+  INTEGRITY ratchet loosened min for ('db_fact_kept', None)
+  INTEGRITY ratchet loosened min for ('refund_amount_correct', None)
+  INTEGRITY ratchet removed no_significant_drop for ('refund_amount_correct', None)
+  INTEGRITY ratchet loosened min for ('pass_rate', None)
+  INTEGRITY ratchet removed no_significant_drop for ('pass_rate', None)
+  INTEGRITY ratchet loosened min for ('pass_hat_5', None)
+  INTEGRITY ratchet loosened min for ('reply_matches_ledger', None)
+  INTEGRITY ratchet removed no_significant_drop for ('reply_matches_ledger', None)
+  INTEGRITY ratchet removed slices ('money_movement', 'pass_rate')
+  INTEGRITY ratchet removed slices ('adversarial', 'pass_rate')
+  INTEGRITY ratchet removed slices ('denial', 'pass_rate')
+exit 1 — blocked: integrity

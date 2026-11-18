@@ -14,14 +14,14 @@ Lệnh in ra ba phần: các event trong trace (`reply`, `decision`, `model_over
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `<shape> <claim>@<seed>`, run ID trong report |
-| Triệu chứng | Grader nào fail; reply nói gì so với ledger ghi gì |
-| Bước sai đầu tiên | Số thứ tự event + kind + trích payload (≤1 dòng) |
-| Vì sao là bước *đầu tiên* | Các bước trước đó đúng ra sao (dẫn số event) |
-| Failure mode | Mã FM-xx trong `docs/failure_taxonomy.md` |
-| Đối chứng | Cùng claim@seed trên shape `fixed`: bước đó khác thế nào |
-| Regression test | Tên test + grader/assert nào bắt được; đã thấy fail trên variant lỗi và pass trên `fixed` chưa |
-| Chưa chắc chắn | Điều trace không chứng minh được |
+| Trial | `seeded_regression C-002@11`, run_id = see trial.result.run_id |
+| Triệu chứng | `lab8_pass=False` (status `resolved` ≠ label `denied`); ledger `refund_vnd=20000` ≠ label `0`; reply "Dạ, LogiX đã hoàn 20.000đ cho đơn O-202." trong khi đúng ra phải từ chối |
+| Bước sai đầu tiên | Event #3 `model_override {delay_days: 5}` — agent ghi đè `delay_days` từ 2 (DB thực) lên 5 (theo lời claim), khiến điều kiện SHIP-LATE-03 (≥ 3 ngày) trở thành đủ điều kiện hoàn tiền |
+| Vì sao là bước *đầu tiên* | Event #1 (handoff) và #2 (investigator) đúng: DB trả `delay_days=2`, agent ghi nhận đúng. Event #3 là nơi agent ưu tiên dữ liệu từ ticket của khách thay vì dữ liệu DB đã xác minh. |
+| Failure mode | **FM-03** (`ticket_trust`): agent tin dữ liệu ticket của khách hơn dữ liệu DB đã xác minh — xem `docs/failure_taxonomy.md` |
+| Đối chứng | `fixed` shape cùng C-002@11: không có event `model_override`; `delay_days` giữ nguyên 2; grader cho `status=denied`, `refund_vnd=0` → `lab8_pass=True` |
+| Regression test | Grader `DbFactKept` phát hiện event `model_override` → `db_fact_kept=False`; `RefundAmountCorrect` phát hiện `ledger refund_vnd=20000` ≠ `label=0` → FAIL. Cả hai đã thấy fail trên `seeded_regression` và pass trên `fixed` trong `pytest tests/test_lab9_graders.py -k ticket_override_regression` |
+| Chưa chắc chắn | Trace không cho thấy *vì sao* model tin ticket hơn DB (prompt injection, context window truncation, hay bias trong instruction). Cần thêm log-level debug của LLM call để xác nhận. |
 
 ## Quy tắc
 

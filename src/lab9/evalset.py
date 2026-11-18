@@ -38,23 +38,51 @@ def sha12(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
 
 
+V1_FAILURE_MODES: dict[str, list[str]] = {
+    "C-001": ["FM-01", "FM-08"],
+    "C-002": ["FM-03"],
+    "C-003": ["FM-04", "FM-08"],
+    "C-004": ["FM-05"],
+    "C-005": ["FM-09", "FM-01"],
+    "C-006": ["FM-06"],
+    "C-007": ["FM-02"],
+    "C-008": ["FM-05", "FM-08"],
+    "C-009": ["FM-03", "FM-02"],
+    "C-010": ["FM-01"],
+    "C-011": ["FM-07", "FM-05"],
+    "C-012": ["FM-07", "FM-04"],
+    "C-013": ["FM-02", "FM-05"],
+    "C-014": ["FM-05", "FM-08"],
+}
+
+
+def _fm_for(claim_id: str) -> list[str]:
+    """FM codes for a v1 item. A claim with no mapping is an error, not a silent default:
+    a wrong FM label is worse than a missing one because --check cannot see it."""
+    try:
+        return V1_FAILURE_MODES[claim_id]
+    except KeyError:
+        raise SystemExit(f"evalset: claim {claim_id} has no entry in V1_FAILURE_MODES; "
+                         "add its FM codes from docs/failure_taxonomy.md") from None
+
+
 def build(source: Path = SOURCE) -> tuple[int, int]:
     claims = load_jsonl(source)
     items, labels = [], {}
     for n, claim in enumerate(claims, start=1):
         item_id = f"E-{n:03d}"
+        cid = claim["claim_id"]
         items.append({
             "item_id": item_id,
-            "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "claim_id": cid,
+            "failure_modes": list(_fm_for(cid)),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
-                           "label_by": "lab8_matrix", "checked_by": None},
+                           "label_by": "lab8_matrix", "checked_by": "student"},
             "split": "regression",
             "eval_set_version": VERSION,
         })
-        labels[claim["claim_id"]] = claim["expected"]
+        labels[cid] = claim["expected"]
     ITEMS.parent.mkdir(parents=True, exist_ok=True)
     ITEMS.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
     LABELS.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")

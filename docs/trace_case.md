@@ -39,7 +39,7 @@ python -m lab9.trace_case --shape seeded_regression --claim C-014 --seed 11
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-014@11`, run ID `E-seeded_regression-20261118-2d5b` (eval set `2d5b313948a4`) |
+| Trial | `seeded_regression C-014@11`, run ID `E-seeded_regression-20261118-6ebb` (eval set `6ebb3a9ee625`) |
 | Triệu chứng | `refund_amount_correct` FAIL (ledger 90.000đ ≠ label 120.000đ), `proposal_correct` FAIL (proposal 120.000 ≠ quote 150.000), `reply_amount_matches` FAIL (reply nói 120.000đ, ledger ghi 90.000đ), Lab 8 `proposal_mismatch`. Đọc ledger trước: khách nhận **thiếu 30.000đ**, trong khi reply khẳng định đã hoàn đủ 120.000đ. |
 | Bước sai đầu tiên | Event 5 `proposal {"amount_vnd": 120000}`: agent tự trừ 30.000đ đã hoàn trước (C-HIST-515) khỏi quote. |
 | Vì sao là bước *đầu tiên* | Event 1 `handoff` đúng contract. Event 2 `investigator` đọc đúng đơn O-515 từ DB. Event 3 `quote` 150.000đ khớp label `proposal_amount=150000` (DMG-04 cap 150.000đ). Event 4 `refund_history` chỉ là thao tác đọc, tự nó chưa sai; dữ kiện đọc được (30.000đ) cũng đúng. Lỗi bắt đầu ở event 5, khi agent dùng dữ kiện đó để **tự** trừ, trong khi việc trừ khoản đã hoàn là của host (policy). Host trừ thêm 30.000đ nữa, nên ledger = 150.000 − 30.000 − 30.000 = 90.000đ. Event 6 `reply` sai là hệ quả. |

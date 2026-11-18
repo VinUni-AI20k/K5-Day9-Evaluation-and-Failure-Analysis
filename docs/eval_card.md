@@ -2,8 +2,8 @@
 
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10. Mọi con số lấy từ report do `python -m lab9.eval` sinh ra (dẫn run ID); không gõ tay.
 
-- **Run ID / eval set SHA:** baseline `E-swarm-20261118-2d5b` · eval set v1 `2d5b313948a4`
-- **Phiên bản:** code: nhánh `starter/d09` (agent = `swarm`, tức `lab8/shapes/swarm_reference.py` gốc Day 8, không sửa) · eval set v1 (sha `2d5b313948a4`) · metric_spec `1.0` · grader `lab9/graders.py` (cùng commit) · seeds 11/22/33/44/55 · pydantic-evals 2.68.0 · MockLLM
+- **Run ID / eval set SHA:** baseline `E-swarm-20261118-6ebb` · eval set v1 `6ebb3a9ee625`
+- **Phiên bản:** code: nhánh `starter/d09` (agent = `swarm`, tức `lab8/shapes/swarm_reference.py` gốc Day 8, không sửa) · eval set v1 (sha `6ebb3a9ee625`) · metric_spec `1.0` · grader `lab9/graders.py` (cùng commit) · seeds 11/22/33/44/55 · pydantic-evals 2.68.0 · MockLLM
 - **Eval set:** v1, 14 item × 5 seed = 70 trial, nguồn `lab8_public` (ma trận T01–T14); nhãn trong `labels_v1.json`, không inline; mỗi item gắn `failure_modes` theo `docs/failure_taxonomy.md`.
 - **Metric & ngưỡng** (`config/metric_spec.yaml`):
 
@@ -40,7 +40,7 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10. Mọi co
 
 ## v2 (Advanced / Expert)
 
-- **Run ID / SHA:** baseline v2 `E-swarm-20261118-360e` · eval set v2 `360e9ab3dfd4` (28 item = 14 v1 + 14 adversarial) · metric_spec `2.0`.
+- **Run ID / SHA:** baseline v2 `E-swarm-20261118-be54` · eval set v2 `be549ac124df` (28 item = 14 v1 + 14 adversarial) · metric_spec `2.0`.
 - **Eval set v2:** `config/fm_map.yaml` map 8 cơ chế tấn công sang FM-02…FM-09 (`double_deduct` → FM-05). Mỗi FM bị tấn công có ≥ 3 item; `evalset --v2` báo 0 problem.
 - **Ngưỡng chọn từ A/A** (`python -m lab9.mutation --spec config/metric_spec_v2.yaml --aa 66,77,88,99,110`): mọi metric có Δ = 0.0000 giữa seed 11…55 và 66…110 (pass_rate 0.9786, pass_hat_5 0.8929 ở cả hai). Δ = 0 vì MockLLM quyết định hoàn toàn theo seed, và lỗi `seed % 5 == 0` của swarm rơi đúng 1 seed ở mỗi bộ (55 và 110). Với LLM thật (temperature > 0, model có thể đổi phía nhà cung cấp), cùng agent chạy hai lần sẽ cho kết quả khác nhau, nên dải nhiễu A/A > 0. Sàn phải nằm **ngoài** dải đó, nếu không gate sẽ chặn ngẫu nhiên cả PR trung thực. Vì vậy sàn `pass_hat_5` = **0.80**: thấp hơn baseline 0.8929 khoảng 0.09 và cao hơn hẳn `flaky_regression` 0.5714.
 - **Slice nào bắt lỗi nào** (scorecard `python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json`, mutation score **3/3**, **0 báo nhầm**):

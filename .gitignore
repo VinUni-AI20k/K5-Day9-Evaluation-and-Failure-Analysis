@@ -15,3 +15,6 @@ src/traces/
 traces/
 student_drop/
 src/eval/instructor/
+
+# Editor settings
+.vscode/

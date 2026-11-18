@@ -64,9 +64,14 @@ class RefundAmountCorrect(Evaluator[Any, Trial]):
         snap = ctx.output.get("snapshot") or {}
         snap_vnd = snap.get("refund_vnd")
         expected_vnd = label.get("refund_vnd")
-        if snap_vnd == expected_vnd:
-            return EvaluationReason(value=True, reason=None)
-        return EvaluationReason(value=False, reason=f"expected {expected_vnd}, got {snap_vnd}")
+        if snap_vnd != expected_vnd:
+            return EvaluationReason(value=False, reason=f"expected {expected_vnd}, got {snap_vnd}")
+        if "proposal_amount" in label and "proposal_amount" in ctx.output.get("result", {}):
+            res_prop = ctx.output["result"]["proposal_amount"]
+            exp_prop = label["proposal_amount"]
+            if res_prop != exp_prop:
+                return EvaluationReason(value=False, reason=f"expected proposal {exp_prop}, got {res_prop}")
+        return EvaluationReason(value=True, reason=None)
 
 
 @dataclass

@@ -1,0 +1,4 @@
+# Eval-set SHA and report checks compare bytes: keep LF on every OS (Windows autocrlf would turn them into CRLF).
+*.jsonl text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf

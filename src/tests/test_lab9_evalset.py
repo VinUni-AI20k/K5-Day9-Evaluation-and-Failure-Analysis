@@ -57,3 +57,12 @@ def test_check_rejects_missing_tags(tmp_path, evalset_cli):
     result = evalset_cli("--check")
     assert result.returncode == 1, result.stdout + result.stderr
     assert "failure_modes empty" in result.stdout
+
+
+@pytest.mark.student
+def test_generated_evalset_uses_lf_on_every_platform(tmp_path, evalset_cli):
+    result = evalset_cli("--build")
+    assert result.returncode == 0, result.stdout + result.stderr
+    for name in ("eval_set_v1.jsonl", "labels_v1.json"):
+        contents = (tmp_path / "data/eval" / name).read_bytes()
+        assert b"\r" not in contents, "CRLF changes the eval-set SHA after Git normalizes the file"

@@ -69,7 +69,7 @@ jobs:
     defaults: {run: {working-directory: src}}
     steps:
       - uses: actions/checkout@v7
-        with: {persist-credentials: false}
+        with: {persist-credentials: false, fetch-depth: 0}
       - id: has
         run: "test -f reports/baseline_v2.json && echo v2=1 >> \"$GITHUB_OUTPUT\" || echo skip, no baseline_v2"
       - if: steps.has.outputs.v2
@@ -78,8 +78,35 @@ jobs:
       - if: steps.has.outputs.v2
         run: uv pip install -r requirements.txt -r requirements-lab9.txt
       - if: steps.has.outputs.v2
-        run: python -m pytest -q -m student -o addopts= -k advanced
+        run: python -m pytest -q -m student -o addopts= -k lab9
       - if: steps.has.outputs.v2
         run: python -m lab9.evalset --v2
       - if: steps.has.outputs.v2
-        run: python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json
+        name: Load the metric policy from the PR base commit
+        env:
+          POLICY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+        run: git show "${POLICY_BASE_SHA}:src/config/metric_spec_v2.yaml" > reports/base_spec_v2.yaml
+      - if: steps.has.outputs.v2
+        name: Validate the PR swarm and enforce the policy ratchet
+        run: |
+          python -m lab9.eval --shape swarm --spec config/metric_spec_v2.yaml --out reports/eval_pr_v2.json
+          python -m lab9.gate --pr reports/eval_pr_v2.json --baseline reports/baseline_v2.json --spec config/metric_spec_v2.yaml --base-spec reports/base_spec_v2.yaml
+      - if: steps.has.outputs.v2
+        run: python -m lab9.mutation --spec config/metric_spec_v2.yaml --baseline reports/baseline_v2.json --base-spec reports/base_spec_v2.yaml
+      - if: steps.has.outputs.v2
+        name: Require explicit integrity blocks for every public trap
+        shell: bash
+        run: |
+          python -m lab9.eval --shape slice_regression --spec config/metric_spec_v2.yaml --out reports/eval_slice_regression.json
+          python -m lab9.traps --pr reports/eval_slice_regression.json --baseline reports/baseline_v2.json --spec config/metric_spec_v2.yaml
+          for trap in evaluator_errors_as_nan dropped_failing_rows cherry_picked_seeds loosened_spec; do
+            policy=config/metric_spec_v2.yaml
+            if [[ "$trap" == loosened_spec ]]; then policy=reports/traps/loosened_spec.spec.yaml; fi
+            gate_status=0
+            gate_output=$(python -m lab9.gate --pr "reports/traps/$trap.json" --baseline reports/baseline_v2.json --spec "$policy" --base-spec config/metric_spec_v2.yaml) || gate_status=$?
+            printf '%s\n' "$gate_output"
+            if [[ "$gate_status" -ne 1 ]] || ! grep -q '^  INTEGRITY ' <<< "$gate_output" || ! grep -q '^exit 1 — blocked: integrity$' <<< "$gate_output"; then
+              echo "Expected an explicit integrity block for $trap (got $gate_status)."
+              exit 1
+            fi
+          done

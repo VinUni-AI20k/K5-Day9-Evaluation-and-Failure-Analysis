@@ -7,6 +7,7 @@ Reference values to self-check are in tests/test_lab9_stats.py.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 
 POS = "FAIL"   # the judge's job is to FIND failures, so FAIL is the positive class
@@ -67,20 +68,50 @@ def paired_bootstrap(a: Sequence[float], b: Sequence[float], *, n_resamples: int
     """a[i], b[i] = per-item mean over seeds, SAME items, SAME order.
     Return (mean(a)-mean(b), lo, hi) with scipy.stats.bootstrap(paired=True, method="percentile",
     rng=numpy.random.default_rng(rng)). If a == b everywhere return (0.0, 0.0, 0.0)."""
-    # TODO M4
-    raise NotImplementedError
+    import numpy as np
+    from scipy.stats import bootstrap
+
+    x, y = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+    if x.shape != y.shape or x.ndim != 1:
+        raise ValueError(f"paired samples must be 1-D and the same length, got {x.shape} vs {y.shape}")
+    if x.size == 0:
+        raise ValueError("paired bootstrap needs at least one item")
+    if np.array_equal(x, y):
+        return 0.0, 0.0, 0.0      # no difference on any item: the CI is exactly [0, 0]
+
+    def mean_diff(s, t, axis=-1):
+        return np.mean(s, axis=axis) - np.mean(t, axis=axis)
+
+    # paired=True resamples ITEM indices and keeps a[i] with b[i]: the same item, two versions.
+    res = bootstrap((x, y), mean_diff, paired=True, vectorized=True, n_resamples=n_resamples,
+                    confidence_level=confidence, method="percentile", rng=np.random.default_rng(rng))
+    ci = res.confidence_interval
+    return float(np.mean(x) - np.mean(y)), float(ci.low), float(ci.high)
 
 
 def pass_at_k(n: int, c: int, k: int) -> float:
     """Probability that AT LEAST ONE of k trials drawn from n (c of them passing) passes.
     Unbiased estimator (Chen et al. 2021): 1 - C(n-c, k) / C(n, k). Raise ValueError if k > n."""
-    # TODO M6
-    raise NotImplementedError
+    _check_nck(n, c, k)
+    return 1.0 - math.comb(n - c, k) / math.comb(n, k)   # comb(n-c, k) == 0 when n-c < k
 
 
 def pass_hat_k(n: int, c: int, k: int) -> float:
     """pass^k (tau-bench, Yao et al. 2024): probability that ALL k trials drawn from n pass.
     Unbiased estimator: C(c, k) / C(n, k). Raise ValueError if k > n.
     pass^k <= pass@1 <= pass@k; a reliable agent keeps pass^k close to pass@1."""
-    # TODO M6
-    raise NotImplementedError
+    _check_nck(n, c, k)
+    return math.comb(c, k) / math.comb(n, k)              # comb(c, k) == 0 when c < k
+
+
+def _check_nck(n: int, c: int, k: int) -> None:
+    """n trials, c of them passing, k drawn: integers with 0 <= c <= n and 1 <= k <= n."""
+    for name, v in (("n", n), ("c", c), ("k", k)):
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise ValueError(f"{name} must be an int, got {v!r}")
+    if n < 1:
+        raise ValueError(f"need n >= 1 trials, got n={n}")
+    if not 0 <= c <= n:
+        raise ValueError(f"need 0 <= c <= n, got c={c}, n={n}")
+    if not 1 <= k <= n:
+        raise ValueError(f"need 1 <= k <= n, got k={k}, n={n}")

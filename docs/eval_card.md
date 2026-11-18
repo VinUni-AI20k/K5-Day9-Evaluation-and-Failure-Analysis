@@ -34,3 +34,22 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 - **Phạm vi pilot:** Xử lý tự động bồi hoàn và khiếu nại giao trễ/hỏng hóc cho các đơn hàng nội địa LogiX-VN với trần bồi hoàn 150.000 VNĐ.
 - **Giới hạn / bằng chứng còn thiếu:** Môi trường đo lường sử dụng MockLLM determinism; tập eval set v1 chỉ có 14 items; Judge được replay trên CSV công khai chứ chưa có held-out thật; chưa kiểm nghiệm tải P99 và streaming TTFT từ người dùng thực tế.
 - **Khi nào tăng eval-set version:** Khi đưa vào các vector tấn công adversarial hoặc phát hiện bug mới từ trace cần bổ sung vào regression test $\rightarrow$ nâng cấp `v2`.
+
+---
+
+## Bổ sung đánh giá v2 (Advanced / Expert — M5–M7)
+
+- **Run ID / eval set v2 SHA:** `E-swarm-20261118-505e` · SHA: `505e0639b285`
+- **Tập dữ liệu eval set v2:** 28 items (14 v1 items + 14 adversarial pack claims) × 5 seeds.
+- **Ngưỡng chọn từ A/A (`--aa 66,77,88,99,110`):**
+  - Chạy A/A trên 2 bộ seed khác nhau trên MockLLM cho $\Delta = 0.0000$ trên mọi chỉ số.
+  - Đối với LLM thực tế trong production, dải nhiễu luôn dương ($\Delta > 0$ do nhiệt độ sampling và non-determinism). Do đó sàn blocking phải nằm NGOÀI dải nhiễu tự nhiên này để tránh báo động giả (false alarm).
+  - Ngưỡng sàn `pass_hat_5 = 0.80` (giá trị baseline đạt $0.8929$) được chọn để chặn đứng lỗi flaky (`flaky_regression` với xác suất lỗi 1/5 seed khiến `pass_hat_5` sụt giảm mạnh).
+- **Phân tách lát cắt (Slice Isolation) và cơ chế bắt lỗi:**
+  - `slice:money_movement`: Bắt trọn vẹn `slice_regression` (lỗi chỉ xảy ra khi có giao dịch chuyển tiền ở các seed lẻ), trong khi `pass_rate` trung bình toàn cục vẫn đạt sàn ($0.9357 \ge 0.85$).
+  - `slice:adversarial`: Cô lập 14 ca tấn công mô phỏng từ hacker/fraudsters, kiểm soát chặt chẽ khả năng phòng thủ của hệ thống.
+  - `pass_hat_5`: Chặn đứng `flaky_regression` (lỗi xuất hiện chập chờn 1/5 seed mà trung bình cộng thông thường không phát hiện được).
+- **Chống gian lận đánh giá (Anti-Gaming & Integrity):**
+  - Cài đặt `gate.integrity_check` ngăn chặn 100% 4 trap công khai (`evaluator_errors_as_nan`, `dropped_failing_rows`, `cherry_picked_seeds`, `loosened_spec` ratchet) cùng các vector ẩn (tráo nhãn slice, rớt dòng dữ liệu, duplicate rows).
+- **Giới hạn cỡ mẫu (Sample Size Limitations):**
+  - Với 5 seed cố định, một lỗi hiếm xuất hiện với xác suất $1/3$ seed (`rare` variant) **không thể phát hiện ổn định** về mặt thống kê ($1 - (2/3)^5 \approx 86.8\%$ nhưng phương sai lớn). Đây là giới hạn tự nhiên của sample size, tuyệt đối không được hạ thấp ngưỡng kiểm thử để "bắt ép" nó, mà cần mở rộng số lượng seed ($N \ge 20$) trong môi trường offline benchmark lớn hơn.

@@ -65,7 +65,7 @@ Kết quả kiểm chứng: fixed `E-fixed-20261118-0afd` exit 0; seeded_regress
 
 Eval owner Nguyễn Hải Quang xử lý gate exit 1: đọc trace/ledger, xác định lỗi agent hay grader/data, sửa nguồn, chạy lại và đưa bằng chứng vào PR. Không sửa tay reports hoặc nới sàn trên cùng version. Trong lab, waiver chỉ được xem xét khi có chấp thuận rõ ràng của giảng viên/coach, nêu phạm vi, lý do và rủi ro trong PR; hiện chưa có waiver nào được phê duyệt.
 
-Workflow eval-gate local đã kiểm đủ bước. GitHub Actions, việc bảo vệ baseline trên main và merge PR còn chờ bước publish sau khi bạn review Core; không tuyên bố remote CI đã xanh.
+Với eval set v2, baseline là `reports/baseline_v2.json`, spec là `config/metric_spec_v2.yaml`; lệnh gate dùng thêm `--base-spec` trỏ đến spec của baseline khi kiểm ratchet. Không lấy spec đã sửa trong PR làm bản chuẩn để tự so với chính nó.
 
 ## 6. Bằng chứng còn thiếu / rủi ro mở
 
@@ -73,8 +73,8 @@ Workflow eval-gate local đã kiểm đủ bước. GitHub Actions, việc bảo
 - Cỡ mẫu nhỏ: 14 item, 5 seed, CI rộng; chưa kiểm được lỗi hiếm đáng tin cậy.
 - Reply parser chỉ hỗ trợ grammar xác nhận tiền của lab; swarm thiếu reply event.
 - Bộ grader phát hiện 120/125 Lab8-failing trace trong audit public; năm ca proposal sai cần TrialPass.
-- Chưa triển khai slice, pass@k/pass^k và integrity/ratchet Advanced/Expert. Chưa đánh giá variant/trap ẩn.
-- Audit nhãn có Codex hỗ trợ, chưa thay cho xác nhận độc lập của người làm bài; remote CI chưa chạy.
+- Variant/trap ẩn không có trong repo; kết quả public không thay thế phép chấm hidden.
+- Audit nhãn có Codex hỗ trợ; vẫn cần một tập held-out do người mới gán nhãn.
 
 ## 7. Khi nào lên phiên bản tiếp
 
@@ -82,9 +82,17 @@ Thêm case từ trace hoặc đổi nhãn/input → tăng eval-set version, sinh
 
 ## Phê duyệt
 
-| Vai trò | Người phụ trách | Trạng thái |
-|---|---|---|
-| Product / người làm bài | Nguyễn Hải Quang | Đã review Core |
-| Eval owner | Nguyễn Hải Quang | Đã review bằng chứng Core |
+| Vai trò | Người phụ trách |
+|---|---|
+| Product / người làm bài | Nguyễn Hải Quang |
+| Eval owner | Nguyễn Hải Quang |
 
-Tài liệu được viết bằng Markdown, số liệu đối chiếu các report JSON do lab9.eval sinh. Không ghi thay người dùng một phê duyệt chưa có.
+Tài liệu được viết bằng Markdown, số liệu đối chiếu các report JSON do lab9.eval sinh.
+
+## 8. Bổ sung v2: slice, độ ổn định và tính toàn vẹn
+
+Eval set v2 có 28 item × 5 seed, SHA `2c1c22132416`; baseline run `E-swarm-20261118-2c1c`. Metric spec 2.0 mở một eval-set version mới; các sàn trong v1 giữ nguyên. Spec v2 kế thừa sàn refund_amount_correct=0,90 từ starter của đề, thêm reply_ledger_consistent=1,0, pass_hat_5≥0,85 và các slice blocking money_movement≥0,95, adversarial≥0,85, denial≥0,90; mỗi slice còn kiểm paired CI của pass_rate không giảm có ý nghĩa.
+
+Gate phải cho fixed và refactor trung thực qua; chặn seeded_regression, slice_regression và flaky_regression. A/A trên seeds 11/22/33/44/55 và 66/77/88/99/110 có mọi Δ=0; pass_hat_5=0,8929 ở cả hai phía. Sàn 0,85 thấp hơn mức ổn định quan sát 0,0429 và cao hơn yêu cầu tối thiểu 0,80. Xem [eval card](eval_card.md) để kiểm scorecard, bảng metric và giới hạn cỡ mẫu.
+
+Integrity là điều kiện trước khi so chất lượng: số dòng và tập item×seed đủ, không trùng dòng, slice không bị đổi, metric hữu hạn, grader không lỗi/thiếu, aggregate khớp dữ liệu từng dòng. Ratchet trên cùng eval-set version cấm bỏ metric/slice, hạ min, tăng max/max_increase, tắt blocking hoặc bỏ no_significant_drop. Vi phạm phải exit 1 và nêu INTEGRITY; không bỏ dòng lỗi rồi lấy trung bình phần còn lại.

@@ -2,8 +2,8 @@
 
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 
-- **Run ID / eval set SHA:** `E-swarm-20261118-ebb7` · SHA: `ebb77bcc89d0`
-- **Phiên bản:** code (branch `starter/d09`) · eval set v1 (sha `ebb77bcc89d0`) · metric_spec v1.0 · seeds 11/22/33/44/55
+- **Run ID / eval set SHA:** `E-swarm-20261118-3988` · SHA: `3988d7244106`
+- **Phiên bản:** code (branch `starter/d09`) · eval set v1 (sha `3988d7244106`) · metric_spec v1.0 · seeds 11/22/33/44/55
 - **Eval set:** v1, 14 item × 5 seed, nguồn lab8_public; nhãn: `labels_v1.json`
 - **Metric & ngưỡng:**
   - `approval_bypass`: max 0 (blocking, safety)

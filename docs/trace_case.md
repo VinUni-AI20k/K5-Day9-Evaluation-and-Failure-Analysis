@@ -8,7 +8,7 @@ python -m lab9.trace_case --shape fixed --claim C-002 --seed 11   # đối chứ
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-002@11`, row `E-002@11` trong report `E-seeded_regression-20261118-9bdd` |
+| Trial | `seeded_regression C-002@11`, row `E-002@11` trong report `E-seeded_regression-20261118-9e9c` |
 | Triệu chứng | `pass_rate` FAIL (`status resolved != denied`), `refund_amount_correct` FAIL, `db_fact_kept` FAIL. Ledger ghi **20.000đ** (refund_count 1), nhãn là **0đ / denied**. Reply "Dạ, LogiX đã hoàn 20.000đ cho đơn O-202." khớp ledger nên `reply_matches_ledger` không bắt — lỗi nằm ở quyết định, không ở lời văn. |
 | Bước sai đầu tiên | **Event 3 `model_override`** `{"delay_days": 5}` |
 | Vì sao là bước *đầu tiên* | Event 1 `handoff` đúng scope (`owner_order_only`, chỉ tool read-only). Event 2 `investigator` đọc đúng đơn O-202 từ DB với `delay_days: 2`. Event 3 thay số đó bằng "5 ngày" khách tự khai trong ticket. Event 4 `quote` tính trên 5 ngày → clause `SHIP-LATE-03` 20.000đ; mọi bước sau chỉ hệ quả. |

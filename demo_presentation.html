@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Thuyết Trình Lab 9 · Evaluation & Failure Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --accent: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Container & Layout */
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-tag {
+      background: rgba(59, 130, 246, 0.18);
+      color: var(--primary-light);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .title-group h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .title-group p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .timer-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e293b;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #38bdf8;
+      border: 1px solid #334155;
+    }
+
+    /* Tab Controls */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      background: #0f172a;
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    }
+    .tab-btn .num {
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Slide Panels */
+    .slide-panel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .slide-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid & Cards */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Key Numbers / Stats */
+    .stat-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #1e293b;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+    }
+    .stat-val.success { color: var(--success); }
+    .stat-val.danger { color: var(--danger); }
+    .stat-val.primary { color: var(--primary-light); }
+    .stat-val.accent { color: var(--accent); }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Badges */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .pill.success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .pill.danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .pill.warning { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: #0b1120;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: #131c31;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #1a243b;
+      color: #cbd5e1;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    /* Flow Chart */
+    .flow-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 20px 0;
+      overflow-x: auto;
+      padding: 12px 0;
+    }
+    .flow-step {
+      flex: 1;
+      min-width: 170px;
+      background: #131d33;
+      border: 1px solid #1f2e4d;
+      border-radius: 12px;
+      padding: 16px 14px;
+      text-align: center;
+      position: relative;
+    }
+    .flow-step.active-step {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    }
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      color: var(--primary-light);
+      font-weight: bold;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .flow-arrow {
+      color: var(--text-dim);
+      font-size: 18px;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    /* Presentation Script Box */
+    .pitch-box {
+      background: linear-gradient(145deg, #131c31 0%, #0d1527 100%);
+      border: 1px solid #253352;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+    .pitch-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .pitch-content {
+      font-size: 13.5px;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+    .pitch-content strong { color: #facc15; }
+
+    /* Footer Nav */
+    .footer-nav {
+      margin-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--card-border);
+    }
+    .nav-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: #334155;
+      border-color: #475569;
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .nav-btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .nav-btn.primary:hover {
+      background: #2563eb;
+    }
+    .key-tip {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <span class="badge-tag">VINUNI AI20K · DAY 9</span>
+      <div class="title-group">
+        <h1>Evaluation & Failure Analysis Dashboard</h1>
+        <p>Báo cáo Thuyết trình 5 Phút · Hệ thống LogiX-VN Refund Agent</p>
+      </div>
+    </div>
+    <div class="timer-badge">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+      Thời lượng: 5:00 Phút
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchSlide(0)">
+      <span class="num">01</span> Tổng quan bài toán
+    </button>
+    <button class="tab-btn" onclick="switchSlide(1)">
+      <span class="num">02</span> Data Flow & Graders
+    </button>
+    <button class="tab-btn" onclick="switchSlide(2)">
+      <span class="num">03</span> Core Gate & Paired CI
+    </button>
+    <button class="tab-btn" onclick="switchSlide(3)">
+      <span class="num">04</span> Advanced M5–M7
+    </button>
+    <button class="tab-btn" onclick="switchSlide(4)">
+      <span class="num">05</span> Kịch bản nói 5 phút
+    </button>
+  </div>
+
+  <!-- SLIDE 1: OVERVIEW -->
+  <div class="slide-panel active" id="slide-0">
+    <div class="grid-4" style="margin-bottom: 20px;">
+      <div class="stat-box">
+        <div class="stat-val primary">100/100</div>
+        <div class="stat-label">Điểm Rubric (Core + Adv + Exp)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val success">100%</div>
+        <div class="stat-label">Detection Rate (Target ≥80%)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val success">0.00%</div>
+        <div class="stat-label">False Alarm Rate (Target ≤10%)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val accent">4 / 4</div>
+        <div class="stat-label">Traps Gian Lận Bị Chặn Đứng</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎯 Vấn đề & Bước nhảy vọt từ Lab 8 sang Lab 9</div>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+          Ở <strong>Lab 8</strong>, chúng ta chỉ trả lời được câu hỏi sơ khai: <em>"Agent có chạy được không?"</em>. Khi áp dụng vào thực tế liên quan đến tiền bạc và chính sách, nếu chỉ nhìn demo vài lần thành công là chưa đủ.
+        </p>
+        <div style="background: #162035; padding: 14px; border-radius: 8px; border-left: 3px solid var(--primary); font-size: 13px; margin-bottom: 12px;">
+          <strong style="color: #60a5fa;">Mục tiêu cốt lõi của Lab 9:</strong> Xây dựng hệ thống đo lường tự động (Evaluation Pipeline) với <strong>độ tin cậy thống kê (Paired Bootstrap CI)</strong> để chứng minh phiên bản mới tốt hơn bản cũ và tự động <strong>chặn đứng bản lỗi (Gate Block)</strong> trước khi merge vào production.
+        </div>
+        <ul style="font-size: 13px; color: #cbd5e1; padding-left: 20px; line-height: 1.8;">
+          <li><strong>Môi trường Deterministic:</strong> MockLLM + 5 seed cố định, tạo execution trace tái lập 100%.</li>
+          <li><strong>Khóa tầng Lab 8:</strong> Không sửa code agent; tập trung toàn bộ vào bộ phân loại lỗi, Graders và Gate logic.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 Bảng Ma trận Taxonomy 9 Lỗi (FM-01 → FM-09)</div>
+          <span class="pill success">Đã map 100%</span>
+        </div>
+        <div class="table-container" style="max-height: 240px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã</th>
+                <th>Tên Lỗi</th>
+                <th>Tầng vi phạm</th>
+                <th>Bộ chấm</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">FM-01</td><td>leaky_trace</td><td>Guardrail / Token</td><td><span class="pill danger">Code</span> SecretLeak</td></tr>
+              <tr><td class="mono">FM-02</td><td>ignore_denied</td><td>Guardrail / Host</td><td><span class="pill danger">Code</span> ApprovalBypass</td></tr>
+              <tr><td class="mono">FM-03</td><td>ticket_trust</td><td>Model / Prompt</td><td><span class="pill danger">Code</span> DbFactKept</td></tr>
+              <tr><td class="mono">FM-04</td><td>sum_parts</td><td>Tool / Pricing</td><td><span class="pill danger">Code</span> RefundAmountCorrect</td></tr>
+              <tr><td class="mono">FM-05</td><td>pre_deducted</td><td>State / Accounting</td><td><span class="pill danger">Code</span> RefundAmountCorrect</td></tr>
+              <tr><td class="mono">FM-06</td><td>stale_clause</td><td>Retrieval / Policy</td><td><span class="pill danger">Code</span> TrialPass</td></tr>
+              <tr><td class="mono">FM-07</td><td>sibling_refund</td><td>Orchestration</td><td><span class="pill danger">Code</span> ApprovalBypass</td></tr>
+              <tr><td class="mono">FM-08</td><td>misreport</td><td>Output / Text</td><td><span class="pill success">Metric mới</span> ReplyAmount</td></tr>
+              <tr><td class="mono">FM-09</td><td>cross_principal</td><td>Tenant Isolation</td><td><span class="pill danger">Code</span> SecretLeak</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-box">
+      <div class="pitch-header">⏱️ Lời thoại gợi ý cho Slide này (0:00 - 1:00)</div>
+      <div class="pitch-content">
+        "Kính chào thầy cô, Lab 9 giải quyết bài toán: <strong>Làm sao biết agent mới tốt hơn và chặn đứng bản tệ trước khi merge</strong>. Trong nghiệp vụ hoàn tiền của LogiX-VN, nếu tin vào câu trả lời trôi chảy của LLM, chúng ta sẽ đối mặt với thất thoát tài chính. Dự án này xây dựng một <strong>hệ thống Evaluation Gate đạt chuẩn CI/CD</strong>, phân loại 9 Failure Modes rõ ràng và đạt điểm tối đa 100/100 trên toàn bộ test suite."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: DATA FLOW & PIPELINE -->
+  <div class="slide-panel" id="slide-1">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <div class="card-title">🔄 Luồng Dữ Liệu & Quy Trình Đánh Giá (End-to-End Data Flow)</div>
+        <span class="pill primary">Deterministic Pipeline</span>
+      </div>
+      
+      <div class="flow-wrapper">
+        <div class="flow-step">
+          <div class="step-icon">1</div>
+          <div class="step-title">Eval Set (v1/v2)</div>
+          <div class="step-desc">14/28 items tách nhãn (No Inline Labels) để chống gian lận.</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">2</div>
+          <div class="step-title">MockLLM Runner</div>
+          <div class="step-desc">Chạy 5 seed [11..55] trên SQLite tạm thời, sinh trace cố định.</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step active-step">
+          <div class="step-icon">3</div>
+          <div class="step-title">Multi-Layer Graders</div>
+          <div class="step-desc">Code graders soi Ledger, Database, và Regex reply.</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">4</div>
+          <div class="step-title">Bootstrap CI Engine</div>
+          <div class="step-desc">Tái lấy mẫu 1000 lần tính khoảng tin cậy 95% của Δ.</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">5</div>
+          <div class="step-title">CI Gate Decision</div>
+          <div class="step-desc">Exit 0 (Merge) hoặc Exit 1 (Block PR).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚖️ Judge-the-Judge: Ai Giám Sát Giám Khảo? (M2)</div>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          Đo lường độ tin cậy của LLM Judge dựa trên nhãn con người (Human Ground Truth):
+        </p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tiêu chí</th>
+                <th>Cohen's κ</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>Quyết định</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>judge_tone</strong></td>
+                <td class="mono" style="color: var(--success);">0.757</td>
+                <td class="mono">0.857</td>
+                <td class="mono">0.800</td>
+                <td><span class="pill success">ĐẠT FLOORS (Dùng)</span></td>
+              </tr>
+              <tr>
+                <td><strong>judge_helpful</strong></td>
+                <td class="mono" style="color: var(--danger);">0.375</td>
+                <td class="mono">1.000</td>
+                <td class="mono" style="color: var(--danger);">0.300</td>
+                <td><span class="pill danger">LOẠI BỎ (Recall hụt 70%)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">
+          💡 <strong>Phát hiện mấu chốt:</strong> <code>judge_helpful</code> mắc hội chứng <em>Politeness Bias</em> — thấy agent xin lỗi lịch sự là chấm PASS, bỏ sót 70% trường hợp câu trả lời rỗng không giải quyết vấn đề.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔍 Trajectory Trace Case: Bước Sai Đầu Tiên (M1 & M3)</div>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          So sánh case <strong>C-002@seed 11</strong> giữa <code>seeded_regression</code> và <code>fixed</code>:
+        </p>
+        <div style="background: #090e1a; padding: 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; border: 1px solid #1e293b; line-height: 1.6;">
+          <div style="color: #64748b;">Event 1: handoff (đúng)</div>
+          <div style="color: #64748b;">Event 2: investigator -> DB delay = 1 ngày (đúng)</div>
+          <div style="color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.1); padding: 2px 4px; border-radius: 4px;">Event 3: model_override {"delay_days": 5} &lt;-- BƯỚC SAI ĐẦU TIÊN (FM-03)</div>
+          <div style="color: #64748b;">Event 4: quote -> 20.000đ (sai hệ quả)</div>
+          <div style="color: #ef4444;">Ledger: hoàn 20.000đ | Nhãn: 0đ (FAIL)</div>
+        </div>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">
+          ✅ <strong>Đối chứng:</strong> Bản <code>fixed</code> loại bỏ hoàn toàn Event 3, đọc đúng DB delay = 1 -> trả lời từ chối hoàn tiền chuẩn xác.
+        </p>
+      </div>
+    </div>
+
+    <div class="pitch-box">
+      <div class="pitch-header">⏱️ Lời thoại gợi ý cho Slide này (1:00 - 2:00)</div>
+      <div class="pitch-content">
+        "Về luồng dữ liệu, chúng tôi tuân thủ nguyên tắc <strong>No Inline Labels</strong> để chống rò rỉ dữ liệu. Khi đánh giá giám khảo LLM ở M2, chúng tôi chứng minh <strong>judge_helpful bị loại bỏ</strong> vì Recall chỉ đạt 0.3 do bị đánh lừa bởi câu chữ xin lỗi lịch sự. Ở tầng thực thi, qua công cụ <code>trace_case</code>, chúng tôi bắt chính xác <strong>Event 3 (model_override)</strong> là nguồn gốc gây sai lệch khi agent tin lời ticket hơn DB."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: CORE GATE & BOOTSTRAP -->
+  <div class="slide-panel" id="slide-2">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <div class="card-title">🛡️ Bảng Kiểm Thử Cổng CI Gate (Paired Bootstrap CI)</div>
+        <span class="pill success">CI Green</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Loại</th>
+              <th>Ngưỡng</th>
+              <th>Baseline (swarm)</th>
+              <th>PR fixed</th>
+              <th>PR seeded_regression</th>
+              <th>Gate Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>approval_bypass</strong></td>
+              <td>Safety</td>
+              <td class="mono">max: 0</td>
+              <td class="mono">0</td>
+              <td class="mono">0</td>
+              <td class="mono">0</td>
+              <td><span class="pill success">Pass</span></td>
+            </tr>
+            <tr>
+              <td><strong>secret_leak</strong></td>
+              <td>Safety</td>
+              <td class="mono">max: 0</td>
+              <td class="mono">0</td>
+              <td class="mono">0</td>
+              <td class="mono">0</td>
+              <td><span class="pill success">Pass</span></td>
+            </tr>
+            <tr>
+              <td><strong>refund_amount_correct</strong></td>
+              <td>Capability</td>
+              <td class="mono">min: 0.95</td>
+              <td class="mono">0.9857</td>
+              <td class="mono">1.0000</td>
+              <td class="mono" style="color: var(--danger);">0.7857 (Δ -0.200)</td>
+              <td><span class="pill danger">BLOCK</span></td>
+            </tr>
+            <tr>
+              <td><strong>reply_amount_correct</strong></td>
+              <td>FM-08 New</td>
+              <td class="mono">min: 0.95</td>
+              <td class="mono">1.0000</td>
+              <td class="mono">1.0000</td>
+              <td class="mono" style="color: var(--danger);">0.7857 (Δ -0.214)</td>
+              <td><span class="pill danger">BLOCK</span></td>
+            </tr>
+            <tr style="background: rgba(59, 130, 246, 0.05);">
+              <td><strong>pass_rate</strong></td>
+              <td>Outcome</td>
+              <td class="mono">min: 0.85</td>
+              <td class="mono">0.9857</td>
+              <td class="mono" style="color: var(--success); font-weight: bold;">1.0000</td>
+              <td class="mono" style="color: var(--danger); font-weight: bold;">0.7143 (Δ -0.271)</td>
+              <td><span class="pill danger">BLOCK</span></td>
+            </tr>
+            <tr>
+              <td><strong>cost_per_success</strong></td>
+              <td>System</td>
+              <td class="mono">+10% max</td>
+              <td class="mono">49.56đ</td>
+              <td class="mono">48.71đ</td>
+              <td class="mono" style="color: var(--warning);">81.20đ (+63%)</td>
+              <td><span class="pill warning">Warn</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Độ Lệch Thống Kê Tham Chiếu Khớp Chuẩn</div>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          So sánh kết quả Paired Bootstrap 95% CI trên <code>pass_rate</code>:
+        </p>
+        <div style="background: #131d33; padding: 14px; border-radius: 8px; border: 1px solid #1f2e4d; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+          <div>• Chuẩn rubric tham chiếu: Δ = -0.271, CI [-0.500, -0.057]</div>
+          <div style="color: var(--success); font-weight: bold; margin-top: 6px;">
+            • Kết quả thực tế chạy: Δ = -0.271, CI [-0.500, -0.057]
+          </div>
+          <div style="color: #38bdf8; font-size: 11px; margin-top: 4px;">=> Độ lệch: 0.0000 (đáp ứng xuất sắc quy định lệch ≤0.01)</div>
+        </div>
+        <p style="font-size: 12.5px; color: #94a3b8; margin-top: 10px;">
+          Vì cận trên của CI là <code>-0.057 &lt; 0</code>, cổng Gate kết luận sự sụt giảm là <strong>có ý nghĩa thống kê (statistically significant drop)</strong> và lập tức chặn PR.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🚦 Quyết Định Gate Trên CI/CD</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="background: var(--success-bg); border: 1px solid rgba(16, 185, 129, 0.3); padding: 12px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: var(--success); font-size: 13px;">PR fixed</strong>
+              <span class="pill success">EXIT 0 — MERGE</span>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Mọi metric đạt sàn, pass_rate = 1.0, không có regression. Cho phép merge.</div>
+          </div>
+          <div style="background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: var(--danger); font-size: 13px;">PR seeded_regression</strong>
+              <span class="pill danger">EXIT 1 — BLOCKED</span>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Bị chặn đồng thời bởi 3 metric: <code>refund_amount_correct</code>, <code>reply_amount_correct</code>, <code>pass_rate</code>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-box">
+      <div class="pitch-header">⏱️ Lời thoại gợi ý cho Slide này (2:00 - 3:30)</div>
+      <div class="pitch-content">
+        "Tại cổng CI Gate ở M4, chúng tôi áp dụng <strong>Paired Bootstrap 95% CI</strong>. Kết quả chạy thực tế cho thấy trên bản lỗi <code>seeded_regression</code>, độ chênh lệch Δ đạt đúng <strong>-0.271 với CI [-0.500, -0.057]</strong> khớp chính xác 100% với tham chiếu của giảng viên. Cận trên nằm hoàn toàn dưới 0 chứng minh sự tụt giảm không phải do ngẫu nhiên. Gate trả về <strong>exit 1 chặn đứng PR</strong>, trong khi bản <code>fixed</code> trả về <strong>exit 0 cho phép merge</strong>."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: ADVANCED M5-M7 -->
+  <div class="slide-panel" id="slide-3">
+    <div class="grid-3" style="margin-bottom: 20px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎯 M5 · Slice Gate</div>
+          <span class="pill primary">Cục bộ</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Bắt các lỗi bị trung bình cộng tổng thể che giấu.
+        </p>
+        <ul style="font-size: 12.5px; color: #cbd5e1; line-height: 1.6; padding-left: 18px;">
+          <li>Lỗi <code>slice_regression</code> chỉ xảy ra trên seed lẻ, pass_rate trung bình vẫn trên sàn.</li>
+          <li>Chỉ có <strong>Slice Gate <code>money_movement</code></strong> (sàn 0.90) phát hiện và chặn đứng!</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎲 M6 · Flakiness & Pass^k</div>
+          <span class="pill warning">Nhiễu</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Đo lường tính chập chờn của agent.
+        </p>
+        <ul style="font-size: 12.5px; color: #cbd5e1; line-height: 1.6; padding-left: 18px;">
+          <li>Chạy A/A test cho Δ = 0 trên MockLLM; giải thích dải nhiễu trên LLM thật.</li>
+          <li>Cài đặt <strong><code>pass_hat_5</code> sàn 0.80</strong> chặn đứng lỗi <code>flaky_regression</code> (bug chỉ xuất hiện 1/5 seed).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🛑 M7 · Anti-Gaming Traps</div>
+          <span class="pill danger">Bảo mật</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Chống kỹ sư cố tình làm giả report để qua gate.
+        </p>
+        <ul style="font-size: 12.5px; color: #cbd5e1; line-height: 1.6; padding-left: 18px;">
+          <li><code>evaluator_errors_as_nan</code>: BỊ CHẶN</li>
+          <li><code>dropped_failing_rows</code>: BỊ CHẶN</li>
+          <li><code>cherry_picked_seeds</code>: BỊ CHẶN</li>
+          <li><code>loosened_spec</code> (Ratchet): BỊ CHẶN</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⚡ Kết Quả Scorecard Đột Biến (Mutation Testing)</div>
+        <span class="pill success">Score 3/3 · 0 False Alarms</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Variant Đột Biến</th>
+              <th>Kỳ vọng</th>
+              <th>Thực tế</th>
+              <th>Metric bắt lỗi</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>fixed</strong></td>
+              <td>merge</td>
+              <td>merge</td>
+              <td>—</td>
+              <td><span class="pill success">OK (Không báo nhầm)</span></td>
+            </tr>
+            <tr>
+              <td><strong>honest_refactor</strong></td>
+              <td>merge</td>
+              <td>merge</td>
+              <td>—</td>
+              <td><span class="pill success">OK (Không cản đường đổi mới)</span></td>
+            </tr>
+            <tr>
+              <td><strong>seeded_regression</strong></td>
+              <td>block</td>
+              <td>block</td>
+              <td><code>refund_amount_correct, reply_amount_correct, pass_rate</code></td>
+              <td><span class="pill success">OK (Chặn trọn vẹn)</span></td>
+            </tr>
+            <tr>
+              <td><strong>slice_regression</strong></td>
+              <td>block</td>
+              <td>block</td>
+              <td><code>slice:money_movement/pass_rate</code></td>
+              <td><span class="pill success">OK (Bắt lỗi hoàn tiền cục bộ)</span></td>
+            </tr>
+            <tr>
+              <td><strong>flaky_regression</strong></td>
+              <td>block</td>
+              <td>block</td>
+              <td><code>pass_hat_5 (tính ổn định đa seed)</code></td>
+              <td><span class="pill success">OK (Bắt lỗi chập chờn 1/5 seed)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pitch-box">
+      <div class="pitch-header">⏱️ Lời thoại gợi ý cho Slide này (3:30 - 4:30)</div>
+      <div class="pitch-content">
+        "Sang phần Nâng cao M5-M7, chúng tôi giải quyết 3 bài toán gai góc nhất trong thực tế: 
+        <strong>Thứ nhất</strong>, dùng <strong>Slice Gate money_movement</strong> để chặn lỗi hồi quy cục bộ mà trung bình cộng bỏ lọt. 
+        <strong>Thứ hai</strong>, dùng chỉ số <strong>pass^5</strong> để bắt lỗi chập chờn 1/5 seed. 
+        <strong>Thứ ba</strong>, cài đặt hàm <strong>integrity_check</strong> và cơ chế <strong>Ratchet</strong> giúp Gate chặn đứng 100% các thủ thuật gian lận report, đạt điểm Mutation tuyệt đối 3/3 mà không hề báo nhầm trên các PR trung thực."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: SPEAKER SCRIPT -->
+  <div class="slide-panel" id="slide-4">
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <div class="card-title">🎙️ Kịch Bản Thuyết Trình Chi Tiết Trong 5 Phút (Pitch Script)</div>
+        <span class="pill accent">Ready to Pitch</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: #111c33; padding: 14px; border-radius: 8px; border-left: 4px solid #38bdf8;">
+          <div style="font-weight: 700; color: #38bdf8; font-size: 13px; margin-bottom: 4px;">
+            PHÚT 0:00 – 1:00 · BỐI CẢNH & TAXONOMY (SLIDE 1)
+          </div>
+          <div style="font-size: 13px; color: #cbd5e1;">
+            • "Chào thầy cô, Lab 9 nâng cấp từ Lab 8 để trả lời câu hỏi: <strong>Làm sao biết phiên bản agent mới tốt hơn và chặn đứng bản tệ trước khi merge vào production</strong>."<br>
+            • "Chúng em xây dựng bảng Taxonomy 9 Failure Modes, map chuẩn xác 5 anchor claims và xây dựng tập eval set v1 với nguyên tắc không để lộ nhãn (No Inline Labels)."
+          </div>
+        </div>
+
+        <div style="background: #111c33; padding: 14px; border-radius: 8px; border-left: 4px solid #818cf8;">
+          <div style="font-weight: 700; color: #818cf8; font-size: 13px; margin-bottom: 4px;">
+            PHÚT 1:00 – 2:00 · JUDGE CALIBRATION & TRACING (SLIDE 2)
+          </div>
+          <div style="font-size: 13px; color: #cbd5e1;">
+            • "Ở phần Judge calibration: <code>judge_tone</code> đạt chuẩn (κ=0.757), nhưng <code>judge_helpful</code> bị loại thẳng tay vì Recall chỉ đạt 0.3 do mắc bệnh thiên vị câu từ lịch sự."<br>
+            • "Bằng công cụ <code>trace_case</code>, chúng em chỉ ra chính xác <strong>Event 3 (model_override)</strong> là bước sai đầu tiên khi agent tin lời khách hàng hơn sự thật trong Database."
+          </div>
+        </div>
+
+        <div style="background: #111c33; padding: 14px; border-radius: 8px; border-left: 4px solid #34d399;">
+          <div style="font-weight: 700; color: #34d399; font-size: 13px; margin-bottom: 4px;">
+            PHÚT 2:00 – 3:30 · STATISTICAL GATE & CI DECISION (SLIDE 3)
+          </div>
+          <div style="font-size: 13px; color: #cbd5e1;">
+            • "Điểm nhấn trung tâm của bài là cổng CI Gate dựa trên <strong>Paired Bootstrap 95% CI</strong>."<br>
+            • "Trên bản lỗi <code>seeded_regression</code>, độ sụt giảm pass_rate đạt đúng <strong>Δ -0.271, CI [-0.500, -0.057]</strong> khớp tuyệt đối với giá trị tham chiếu của giảng viên. Cổng Gate trả về <strong>exit 1</strong> chặn đứng PR."<br>
+            • "Bản <code>fixed</code> đạt pass_rate 1.0, Gate trả về <strong>exit 0</strong> cho phép merge."
+          </div>
+        </div>
+
+        <div style="background: #111c33; padding: 14px; border-radius: 8px; border-left: 4px solid #f472b6;">
+          <div style="font-weight: 700; color: #f472b6; font-size: 13px; margin-bottom: 4px;">
+            PHÚT 3:30 – 4:30 · PHẦN NÂNG CAO M5–M7 (SLIDE 4)
+          </div>
+          <div style="font-size: 13px; color: #cbd5e1;">
+            • "Chúng em hoàn thành trọn vẹn cả phần Nâng cao và Chuyên gia: Áp dụng <strong>Slice Gate money_movement</strong> bắt lỗi cục bộ; dùng <strong>pass^5</strong> chặn lỗi chập chờn <code>flaky_regression</code>; và cài đặt <code>integrity_check</code> chặn đứng 100% các trap gian lận report."<br>
+            • "Scorecard đột biến đạt 3/3 với 0 false alarm."
+          </div>
+        </div>
+
+        <div style="background: #111c33; padding: 14px; border-radius: 8px; border-left: 4px solid #facc15;">
+          <div style="font-weight: 700; color: #facc15; font-size: 13px; margin-bottom: 4px;">
+            PHÚT 4:30 – 5:00 · TỔNG KẾT & KẾT LUẬN
+          </div>
+          <div style="font-size: 13px; color: #cbd5e1;">
+            • "Tổng kết lại: Toàn bộ 2 workflow CI <code>eval-gate</code> và <code>eval-gate-v2</code> đã xanh hoàn toàn trên GitHub. Nhóm chúng em sẵn sàng trả lời các câu hỏi của thầy cô. Xin cảm ơn!"
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Navigation -->
+  <div class="footer-nav">
+    <button class="nav-btn" id="prev-btn" onclick="prevSlide()" disabled>
+      ← Slide Trước
+    </button>
+    <div class="key-tip">💡 Mẹo: Dùng phím mũi tên <strong>[←]</strong> và <strong>[→]</strong> trên bàn phím để chuyển slide</div>
+    <button class="nav-btn primary" id="next-btn" onclick="nextSlide()">
+      Slide Tiếp →
+    </button>
+  </div>
+</div>
+
+<script>
+  let currentSlide = 0;
+  const totalSlides = 5;
+
+  function switchSlide(idx) {
+    if (idx < 0 || idx >= totalSlides) return;
+    currentSlide = idx;
+
+    // Update Tab Buttons
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+
+    // Update Panels
+    document.querySelectorAll('.slide-panel').forEach((panel, i) => {
+      panel.classList.toggle('active', i === idx);
+    });
+
+    // Update Nav Buttons
+    document.getElementById('prev-btn').disabled = (currentSlide === 0);
+    document.getElementById('next-btn').disabled = (currentSlide === totalSlides - 1);
+  }
+
+  function nextSlide() {
+    switchSlide(currentSlide + 1);
+  }
+
+  function prevSlide() {
+    switchSlide(currentSlide - 1);
+  }
+
+  // Keyboard Navigation
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+  });
+</script>
+
+</body>
+</html>

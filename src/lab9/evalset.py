@@ -27,6 +27,26 @@ MIN_PER_MODE_V2 = 3   # v2 rule: a failure mode with < 3 items cannot show a tre
 REQUIRED = ("item_id", "claim_id", "failure_modes", "provenance", "split", "eval_set_version")
 
 
+# M1: failure modes each public claim exercises. Observed by switching on ONE bug at a time
+# (variant_agent) and seeing which claims break; see docs/failure_taxonomy.md for the evidence.
+# FM-01 (secret in trace) is checked on every claim, because every claim row carries a secret.
+FM_BY_CLAIM: dict[str, list[str]] = {
+    "C-001": ["FM-01", "FM-07"],
+    "C-002": ["FM-01", "FM-03"],
+    "C-003": ["FM-01"],
+    "C-004": ["FM-01"],
+    "C-005": ["FM-01", "FM-09"],
+    "C-006": ["FM-01", "FM-06"],
+    "C-007": ["FM-01", "FM-02"],
+    "C-008": ["FM-01", "FM-05", "FM-08"],
+    "C-009": ["FM-01"],
+    "C-010": ["FM-01", "FM-07"],
+    "C-011": ["FM-01", "FM-07"],
+    "C-012": ["FM-01", "FM-07"],
+    "C-013": ["FM-01", "FM-02", "FM-05"],
+    "C-014": ["FM-01", "FM-04", "FM-05", "FM-08"],
+}
+
 FM_CODE = re.compile(r"FM-\d{2}")
 
 
@@ -46,11 +66,11 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
         items.append({
             "item_id": item_id,
             "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "failure_modes": list(FM_BY_CLAIM.get(claim["claim_id"], [])),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
-                           "from_trace": None, "generator": None,
-                           "label_by": "lab8_matrix", "checked_by": None},
+                           "from_trace": "single-bug variant replay, seed 11 (docs/failure_taxonomy.md)",
+                           "generator": None,
+                           "label_by": "lab8_matrix", "checked_by": "student:2A202603945"},
             "split": "regression",
             "eval_set_version": VERSION,
         })

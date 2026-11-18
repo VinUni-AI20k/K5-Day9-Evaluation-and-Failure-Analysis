@@ -2,8 +2,8 @@
 
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 
-- **Run ID / eval set SHA:** baseline `E-swarm-20261118-3477` · PR mẫu `E-fixed-20261118-3477`, `E-seeded_regression-20261118-3477` · eval set sha `347774a8af43`
-- **Phiên bản:** code (commit) `ca45c3e` · eval set v1 (sha `347774a8af43`) · metric_spec `1.0` · grader (commit) `be17f94` (`ReplyMatchesLedger`), `8b53d6e` (`ApprovalBypass`, `RefundAmountCorrect`) · seeds 11/22/33/44/55 · LLM: MockLLM · Python 3.13.3
+- **Run ID / eval set SHA:** baseline `E-swarm-20261118-b938` · PR mẫu `E-fixed-20261118-b938`, `E-seeded_regression-20261118-b938` · eval set sha `b938a29cbeb1`
+- **Phiên bản:** code (commit) `ca45c3e` · eval set v1 (sha `b938a29cbeb1`) · metric_spec `1.0` · grader (commit) `be17f94` (`ReplyMatchesLedger`), `8b53d6e` (`ApprovalBypass`, `RefundAmountCorrect`) · seeds 11/22/33/44/55 · LLM: MockLLM · Python 3.13.3
 - **Eval set:** v1, 14 item × 5 seed = 70 trial, nguồn `lab8_public`; nhãn tách riêng trong `labels_v1.json`; mỗi item có `failure_modes` (FM-xx) và provenance.
 - **Metric & ngưỡng** (trích `config/metric_spec.yaml`):
 
@@ -33,7 +33,7 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 | **Gate** | | | **exit 0 — merge** | | **exit 1 — blocked: refund_amount_correct, pass_rate, reply_matches_ledger** |
 
 - **Judge** (`docs/judge_audit.md`): tone_ok κ=0.757, P=0.857, R=0.800 (n=100) → đạt FLOORS, **dùng**. helpful κ=0.375, P=1.000, R=0.300 → **loại**: bỏ sót 21/30 reply hỏng (fn=21), tỉ lệ lỗi quan sát 0.09 nhưng hiệu chỉnh Rogan-Gladen là 0.30; phần lớn lỗi bỏ sót là sai tiền (FM-08), vốn phải chấm bằng code. Judge không nằm trong gate.
-- **Trace case:** `docs/trace_case.md` — `seeded_regression C-002@11` (run `E-seeded_regression-20261118-3477`). Bước sai đầu tiên: event #3 `model_override {"delay_days": 5}` (DB ghi 2 ngày) → FM-03 ticket_trust. Regression test `tests/test_lab9_trace_case.py`: fail trên seeded_regression, pass trên fixed.
+- **Trace case:** `docs/trace_case.md` — `seeded_regression C-002@11` (run `E-seeded_regression-20261118-b938`). Bước sai đầu tiên: event #3 `model_override {"delay_days": 5}` (DB ghi 2 ngày) → FM-03 ticket_trust. Regression test `tests/test_lab9_trace_case.py`: fail trên seeded_regression, pass trên fixed.
 - **Gate owner:** Trần Minh Đức (eval owner). Gate exit 1 → không merge; tác giả PR sửa lỗi hoặc xin waiver có lý do ghi trong PR, eval owner duyệt.
 - **Phạm vi pilot:** yêu cầu hoàn phí ship do giao trễ và bồi thường hàng hỏng đã xác minh, một đơn/claim, kênh chat CSKH, số tiền ≤ `paid_vnd` của đơn và trong mức approval. Ngoài phạm vi: claim nhiều đơn, tranh chấp pháp lý, đơn không thuộc principal (phải escalate).
 - **Giới hạn / bằng chứng còn thiếu:**

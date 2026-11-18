@@ -63,6 +63,16 @@ class RefundAmountCorrect(Evaluator[Any, Trial]):
                                 reason=None if actual == expected else f"ledger={actual}, expected={expected}")
 
 
+@dataclass
+class ProposalAmountCorrect(Evaluator[Any, Trial]):
+    def evaluate(self, ctx: EvaluatorContext[Any, Trial]) -> EvaluationReason:
+        actual = ctx.output["result"].get("proposal_amount")
+        expected = ctx.expected_output["proposal_amount"]
+        if actual == expected:
+            return EvaluationReason(value=True)
+        return EvaluationReason(value=False, reason=f"proposal={actual}, expected={expected}")
+
+
 REFUND_CONFIRMED = re.compile(r"\b(?:đã\s+(?:được\s+)?(?:hoàn|refund)|refunded)\b", re.IGNORECASE)
 VND_AMOUNT = re.compile(
     r"(?<![\w.,+-])([-+]?\d+(?:[., \u00a0]\d{3})*)\s*(?:vnđ|vnd|đồng|đ|₫)(?!\w)",
@@ -108,4 +118,5 @@ GRADERS: dict[str, type[Evaluator]] = {
     "refund_amount_correct": RefundAmountCorrect,
     "db_fact_kept": DbFactKept,
     "reply_ledger_consistent": ReplyLedgerConsistent,
+    "proposal_amount_correct": ProposalAmountCorrect,
 }

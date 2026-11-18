@@ -8,13 +8,13 @@ Chạy: `python -m lab9.judge --csv <file> --audit 5`
 | helpful | 100 | 0.375 | 1.000 | 0.300 | Không đạt (FAIL κ, R) | loại |
 
 ## ≥5 case audit thủ công
-| # | Case | Judge nói | Người nói | Ai đúng? | Ghi chú |
-|---|---|---|---|---|---|
-| 1 | H-008 | PASS | FAIL | Người đúng | Xưng 'em' + 'nha', quá suồng sã với khách hàng; judge coi là thân thiện. |
-| 2 | H-017 | PASS | FAIL | Người đúng | Xưng 'bạn' với khách hàng; judge coi là thân thiện, người đánh giá vi phạm quy chuẩn giao tiếp CS. |
-| 3 | H-029 | PASS | FAIL | Người đúng | Giọng ra lệnh ('không cần nhắn thêm'); judge chỉ thấy 'Dạ, vui lòng' nên bỏ sót. |
-| 4 | H-042 | FAIL | PASS | Người đúng | Ngắn gọn nhưng đầy đủ số tiền và thời hạn 3–5 ngày; judge phạt máy móc vì 'thiếu xin lỗi'. |
-| 5 | HL-016 | PASS | FAIL | Người đúng | Câu văn xin lỗi lịch sự chuẩn mực nhưng báo sai tiền (55.000đ vs ledger 35.000đ); judge không đối chiếu ledger nên bỏ sót lỗi nghiêm trọng. |
+| # | Case | Judge nói | Người nói | Ai đúng? | Ghi chú | Hành động sửa rubric / prompt |
+|---|---|---|---|---|---|---|
+| 1 | H-008 | PASS | FAIL | Người đúng | Xưng 'em' + 'nha', quá suồng sã với khách hàng; judge coi là thân thiện. | Thêm quy tắc cấm xưng 'em' và trợ từ thân mật 'nha' trong văn cảnh CS; bắt buộc đại từ chuẩn mực 'LogiX'. |
+| 2 | H-017 | PASS | FAIL | Người đúng | Xưng 'bạn' với khách hàng; judge coi là thân thiện, người đánh giá vi phạm quy chuẩn giao tiếp CS. | Chuẩn hóa danh xưng khách hàng là 'anh/chị' hoặc 'Quý khách'; cấm dùng danh xưng ngang hàng 'bạn'. |
+| 3 | H-029 | PASS | FAIL | Người đúng | Giọng ra lệnh ('không cần nhắn thêm'); judge chỉ thấy 'Dạ, vui lòng' nên bỏ sót. | Loại bỏ thiên kiến bắt từ khóa bề mặt 'Dạ, vui lòng'; thêm tiêu chí phát hiện câu mệnh lệnh, gạt bỏ khách hàng. |
+| 4 | H-042 | FAIL | PASS | Người đúng | Ngắn gọn nhưng đầy đủ số tiền và thời hạn 3–5 ngày; judge phạt máy móc vì 'thiếu xin lỗi'. | Nới lỏng rubric: không bắt buộc xin lỗi khi yêu cầu đã được giải quyết thỏa đáng, ưu tiên tính rõ ràng của thông tin hoàn tiền. |
+| 5 | HL-016 | PASS | FAIL | Người đúng | Câu văn xin lỗi lịch sự chuẩn mực nhưng báo sai tiền (55.000đ vs ledger 35.000đ); judge không đối chiếu ledger nên bỏ sót lỗi nghiêm trọng. | Loại bỏ hoàn toàn LLM judge đối với tiêu chí `helpful` có dính dáng tới số liệu; bắt buộc dùng code grader (`ReplyMatchesLedger`) so khớp trực tiếp với ledger SQLite. |
 
 ## Kết luận
 - **Tiêu chí bị loại và lý do**: 

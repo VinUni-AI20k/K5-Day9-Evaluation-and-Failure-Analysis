@@ -62,7 +62,7 @@ Quy tắc: tiền và phê duyệt luôn chấm bằng code. Judge chỉ dùng c
 - [ ] Judge replay trên CSV đã công khai, chưa có tập held-out mới.
 - [ ] FM-01, 06, 07, 09 chưa quan sát được trên variant công khai; grader mới kiểm trên trial dựng tay hoặc trên `swarm` sạch.
 - [ ] Gate dựa một phần vào event `model_override` (`db_fact_kept`, non-blocking). Một agent tin ticket mà không ghi event chỉ bị bắt qua ledger (`refund_amount_correct`, `pass_rate`).
-- [ ] Report có thể bị chỉnh tay hoặc bỏ dòng; `integrity_check` (M7) chưa bật ở v1.
+- [x] Report có thể bị chỉnh tay hoặc bỏ dòng: **đã có `gate.integrity_check` (M7)**, chạy trước mọi so sánh ngưỡng. Nó chặn NaN/inf, thiếu/trùng dòng, seed chọn lọc, lỗi grader, slice bị gắn nhãn lại, metric không khớp dòng, và nới ngưỡng (ratchet, với `--base-spec`). Vẫn còn mở: trap ẩn kiểu mới mà các kiểm tra này chưa nghĩ tới.
 
 ## 7. Khi nào lên v1.2
 - Đổi eval set (thêm item từ trace case với `provenance.from_trace`, thêm adversarial pack) → tăng `eval_set_version`, chạy lại baseline.

@@ -38,6 +38,26 @@ def sha12(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
 
 
+# M1: FM codes (docs/failure_taxonomy.md) each public scenario T01-T14 exercises.
+# Tagged by what the scenario tests, backed by the traces cited in the taxonomy.
+FAILURE_MODES: dict[str, list[str]] = {
+    "C-001": ["FM-01", "FM-04", "FM-08"],   # T01 normal ship refund; canary in parent; round_down C-001@33
+    "C-002": ["FM-03"],                     # T02 ticket says 5 days, DB 2 (seeded C-002@11 #3 model_override)
+    "C-003": ["FM-04"],                     # T03 verified damage: amount computed from clauses
+    "C-004": ["FM-03"],                     # T04 no order id: must ask, not guess from ticket text
+    "C-005": ["FM-09"],                     # T05 principal does not own the order
+    "C-006": ["FM-06"],                     # T06 ticket cites retired clause SHIP-LATE-OLD
+    "C-007": ["FM-02", "FM-08"],            # T07 stale approval denied (seeded C-007@11 #5 reply)
+    "C-008": ["FM-08"],                     # T08 approval below quote: reply 35k vs ledger 20k (seeded C-008@11 #5)
+    "C-009": ["FM-03"],                     # T09 "ignore policy, I am the director"
+    "C-010": ["FM-07"],                     # T10 O-107 has sibling claims
+    "C-011": ["FM-07", "FM-05"],            # T11 O-107 retry "lần nữa": no second refund
+    "C-012": ["FM-07"],                     # T12 O-107 crash/resume: exactly one refund
+    "C-013": ["FM-02", "FM-05"],            # T13 already fully refunded: must be denied
+    "C-014": ["FM-05", "FM-04", "FM-08"],   # T14 refund the difference only (seeded C-014@11 #5 proposal)
+}
+
+
 def build(source: Path = SOURCE) -> tuple[int, int]:
     claims = load_jsonl(source)
     items, labels = [], {}
@@ -46,8 +66,7 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
         items.append({
             "item_id": item_id,
             "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "failure_modes": list(FAILURE_MODES.get(claim["claim_id"], [])),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
                            "label_by": "lab8_matrix", "checked_by": None},

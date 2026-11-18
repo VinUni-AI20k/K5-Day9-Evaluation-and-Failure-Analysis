@@ -44,8 +44,35 @@ def slice_check(pr: dict, base: dict, spec: dict) -> tuple[list[str], list[str]]
       - fail if below "min", or if no_significant_drop and the paired CI over the slice's items
         lies entirely below 0
     Return (blocked ids like "slice:money_movement/pass_rate", report lines)."""
-    # TODO M5
-    return [], []
+    blocked, lines = [], []
+    bs = spec.get("bootstrap", {})
+    for rule in spec.get("slices", []):
+        name, metric = rule["name"], rule["metric"]
+        mid = f"slice:{name}/{metric}"
+        a, b = per_item(pr, metric, name), per_item(base, metric, name)
+        reasons = []
+        value = sum(a.values()) / len(a) if a else None
+        if not a or set(a) != set(b):
+            reasons.append("missing or unpaired slice items")
+        else:
+            if "min" in rule and value < rule["min"]:
+                reasons.append(f"below floor {rule['min']}")
+            if rule.get("no_significant_drop"):
+                keys = sorted(a)
+                if len(keys) == 1:
+                    delta = a[keys[0]] - b[keys[0]]
+                    lo = hi = delta
+                else:
+                    delta, lo, hi = stats.paired_bootstrap(
+                        [a[k] for k in keys], [b[k] for k in keys],
+                        n_resamples=bs.get("n_resamples", 1000), rng=bs.get("rng", 2027),
+                        confidence=bs.get("confidence", 0.95))
+                if hi < 0:
+                    reasons.append(f"significant drop CI [{lo:+.3f}, {hi:+.3f}]")
+        if reasons and rule.get("blocking"):
+            blocked.append(mid)
+        lines.append(f"  {mid} {value}: {'; '.join(reasons) if reasons else 'ok'}")
+    return blocked, lines
 
 
 def check(pr: dict, base: dict, spec: dict, base_spec: dict | None = None) -> tuple[list[str], list[str]]:

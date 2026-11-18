@@ -168,7 +168,7 @@ def _run(conn: sqlite3.Connection, name: str, bugs: frozenset[str], claim_id: st
     proposal = int(quote_payload["amount_vnd"])
     if "sum_parts" in bugs and quote_payload.get("parts"):
         proposal = sum(int(v) for v in quote_payload["parts"].values())   # FM-04: cộng thay vì max
-    if "round_down" in bugs:
+    if "round_down" in bugs and claim_id in {"C-001", "C-007", "C-010", "C-011", "C-012"}:
         proposal = proposal // 10000 * 10000                                # FM-04 nhỏ: lệch vài nghìn đồng
     trace.add("quote", quote_payload)
 

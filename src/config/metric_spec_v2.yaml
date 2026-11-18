@@ -16,10 +16,19 @@ metrics:
      threshold: {min: 0.90, no_significant_drop: true}}
   - {id: pass_rate,             kind: capability, level: outcome,    grader: lab8.metrics.trial_pass, blocking: true,
      threshold: {min: 0.85, no_significant_drop: true}}
-  # TODO M6: add a blocking pass_hat_5 metric. Pick its floor from the A/A run (two seed sets,
-  #          same agent): a floor inside the A/A noise band blocks honest PRs at random.
+  - {id: proposal_matches_policy, kind: capability, level: step,     grader: code, threshold: {min: 0.90}, blocking: false}
+  # M6: pass^5 = share of items that pass on ALL 5 seeds (unbiased estimator, n = k = 5).
+  #     Floor chosen from the A/A run (see docs/eval_card.md section v2): outside the noise band.
+  - {id: pass_hat_5,            kind: capability, level: outcome,    grader: lab9.stats.pass_hat_k, threshold: {min: 0.80}, blocking: true}
   - {id: cost_per_success,      kind: system,     level: system,     grader: lab8.metrics.summarize, threshold: {max_increase: 0.10}, blocking: false}
-  # TODO M3 carry-over: your FM-08 metric from v1 goes here too.
+  # M3 carry-over / FM-08: every amount the reply states must equal the ledger refund.
+  - {id: reply_matches_ledger,  kind: capability, level: outcome,    grader: code, blocking: true,
+     threshold: {min: 0.90, no_significant_drop: true}}
 slices:
-  # TODO M5: add at least money_movement and adversarial. Example of the shape:
-  - {name: denial, metric: pass_rate, min: 0.90, no_significant_drop: true, blocking: true}
+  # M5: an average over 28 items hides a regression on a small slice; each slice is gated on its own.
+  - {name: money_movement, metric: pass_rate,             min: 0.90, no_significant_drop: true, blocking: true}
+  # money is graded near-exact: baseline = 1.0 on this slice; 0.98 tolerates at most 1 wrong row in 60
+  - {name: money_movement, metric: refund_amount_correct, min: 0.98, no_significant_drop: true, blocking: true}
+  - {name: money_movement, metric: reply_matches_ledger,  min: 0.98, no_significant_drop: true, blocking: true}
+  - {name: adversarial,    metric: pass_rate,             min: 0.90, no_significant_drop: true, blocking: true}
+  - {name: denial,         metric: pass_rate,             min: 0.90, no_significant_drop: true, blocking: true}

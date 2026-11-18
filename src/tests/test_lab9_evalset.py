@@ -57,3 +57,35 @@ def test_check_rejects_missing_tags(tmp_path, evalset_cli):
     result = evalset_cli("--check")
     assert result.returncode == 1, result.stdout + result.stderr
     assert "failure_modes empty" in result.stdout
+
+
+@pytest.mark.student
+def test_trace_case_c002_first_wrong_step(monkeypatch):
+    """Regression test for docs/trace_case.md (C-002@11 FM-03 ticket_trust)."""
+    src_dir = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(src_dir)
+    from lab9.graders import DbFactKept
+    from lab9.trace_case import investigate
+    from pydantic_evals.evaluators import EvaluatorContext
+
+    bad = investigate("seeded_regression", "C-002", 11)
+    good = investigate("fixed", "C-002", 11)
+
+    # Step 3 is the first wrong step (model_override: {"delay_days": 5})
+    assert bad["trial"]["events"][2]["kind"] == "model_override"
+    assert bad["trial"]["events"][2]["payload"] == {"delay_days": 5}
+    assert bad["trial"]["snapshot"]["refund_vnd"] == 20000
+    assert bad["trial"]["lab8_pass"] is False
+
+    # Contrast with fixed C-002@11: no model_override, ledger refund_vnd == 0, passes
+    assert all(e.get("kind") != "model_override" for e in good["trial"]["events"])
+    assert good["trial"]["snapshot"]["refund_vnd"] == 0
+    assert good["trial"]["lab8_pass"] is True
+
+    bad_ctx = EvaluatorContext(name="bad", inputs={}, metadata=None, expected_output=bad["label"],
+                               output=bad["trial"], duration=0.0, _span_tree=None, attributes={}, metrics={})
+    good_ctx = EvaluatorContext(name="good", inputs={}, metadata=None, expected_output=good["label"],
+                                output=good["trial"], duration=0.0, _span_tree=None, attributes={}, metrics={})
+    assert DbFactKept().evaluate(bad_ctx).value is False
+    assert DbFactKept().evaluate(good_ctx).value is True
+

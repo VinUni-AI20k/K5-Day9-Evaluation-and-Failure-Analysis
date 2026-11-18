@@ -28,3 +28,18 @@ Lệnh in ra ba phần: các event trong trace (`reply`, `decision`, `model_over
 - Đọc **ledger trước reply**: reply trôi chảy vẫn có thể đi kèm một khoản hoàn sai.
 - "Bước sai đầu tiên" phải dẫn số event cụ thể, không phải "agent bị nhầm".
 - Case chỉ hoàn thành khi có regression test chạy được: thêm vào `tests/`, hoặc thành item mới trong eval set với `provenance.from_trace`.
+
+---
+
+## Case đã phân tích (M1)
+
+| Trường | Nội dung |
+|---|---|
+| Trial | `swarm C-002@55` (`lab8 grader: FAIL (status resolved != denied)`) |
+| Triệu chứng | `trial_pass` fail (`status resolved != denied`); ledger ghi `refund_vnd=20000`, `refund_count=1` trong khi nhãn đúng là `0` và `denied`. |
+| Bước sai đầu tiên | Step `3` · `model_override` · `{"delay_days": 5}` |
+| Vì sao là bước *đầu tiên* | Step `1` (`handoff`) khởi tạo scope đúng (`owner_order_only`); Step `2` (`investigator`) gọi `lookup_order` lấy đúng dữ liệu DB (`order_id: "O-202"`, `status: "delivered"`, `delay_days: 2`). Tới Step `3`, model tự ghi đè `delay_days` thành `5` theo ticket. |
+| Failure mode | `FM-03` (`ticket_trust — tin ticket hơn DB`) |
+| Đối chứng | Cùng `C-002@55` trên shape `fixed`: không có event `model_override`, giữ `delay_days=2` từ DB nên từ chối hoàn tiền (`status=denied`, `refund_vnd=0`). |
+| Regression test | `E-002` (`C-002`) trong `eval_set_v1.jsonl` + grader `db_fact_kept` / `trial_pass`; đã thấy fail trên `swarm@55` và `seeded_regression@11..55`, pass trên `fixed@11..55`. |
+| Chưa chắc chắn | Trên MockLLM lỗi chỉ kích hoạt theo `seed % 5 == 0` (`swarm`), chưa phản ánh tần suất tin nhầm prompt của LLM thật. |

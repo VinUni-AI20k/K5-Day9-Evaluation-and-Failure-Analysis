@@ -27,7 +27,7 @@ Trace (rút gọn):
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-002@11`, run ID `E-seeded_regression-<YYYYMMDD>-<sha4>` trong `reports/eval_seeded_regression.json` (điền sau khi chạy `lab9.eval` ở M4) |
+| Trial | `seeded_regression C-002@11`, run ID `E-seeded_regression-20261118-5fcc` (`src/reports/eval_seeded_regression.json`, eval set `5fccf94acc33`) |
 | Triệu chứng | Grader Lab 8 FAIL (`status resolved != denied`); `refund_amount_correct` fail. **Ledger**: 1 row, 20.000đ, trong khi nhãn là 0. Reply #6 "đã hoàn 20.000đ" khớp ledger, nên nhìn reply thì tưởng đúng. |
 | Bước sai đầu tiên | **#3 `model_override`** `{"delay_days": 5}`: agent ghi đè số ngày trễ của DB bằng số ngày khách khai trong ticket ("giao trễ 5 ngày"). |
 | Vì sao là bước *đầu tiên* | #1 handoff đúng scope (`owner_order_only`, chỉ tool đọc). #2 investigator đọc đúng DB: O-202 trễ 2 ngày, chưa đủ điều kiện hoàn. Mọi bước sau đều là hệ quả của #3: #4 quote 20.000 tính trên 5 ngày, #6 reply báo số đó. |

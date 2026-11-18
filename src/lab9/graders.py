@@ -9,6 +9,7 @@ that still grades correctly. Money and approvals are always code, never a judge.
 """
 
 from __future__ import annotations
+import re
 
 from dataclasses import dataclass
 from typing import Any
@@ -73,6 +74,22 @@ class DbFactKept(Evaluator[Any, Trial]):
         bad = [e for e in ctx.output["events"] if e.get("kind") == "model_override"]
         return EvaluationReason(value=not bad, reason=f"{len(bad)} override event(s)" if bad else None)
 
+_AMOUNT = re.compile(r"(\d{1,3}(?:[.,]\d{3})+|\d+)\s*(?:đ|đồng|vnd|VND)")
+
+
+@dataclass
+class ReplyMatchesLedger(Evaluator[Any, Trial]):
+    """Capability, FM-08. Every money amount the reply states must equal what the ledger holds."""
+
+    def evaluate(self, ctx: EvaluatorContext[Any, Trial]) -> EvaluationReason:
+        ledger = ctx.output["snapshot"].get("refund_vnd") or 0
+        said = [int(re.sub(r"[.,]", "", m))
+                for e in ctx.output["events"] if e.get("kind") == "reply"
+                for m in _AMOUNT.findall(str((e.get("payload") or {}).get("text", "")))]
+        wrong = [s for s in said if s != ledger]
+        return EvaluationReason(value=not wrong,
+                                reason=f"reply says {wrong}, ledger {ledger}" if wrong else None)
+
 
 # Order matters only for display. Names here are the metric ids in config/metric_spec.yaml.
 GRADERS: dict[str, type[Evaluator]] = {
@@ -81,4 +98,7 @@ GRADERS: dict[str, type[Evaluator]] = {
     "approval_bypass": ApprovalBypass,
     "refund_amount_correct": RefundAmountCorrect,
     "db_fact_kept": DbFactKept,
+        "db_fact_kept": DbFactKept,
+    "reply_matches_ledger": ReplyMatchesLedger,
 }
+

@@ -2,7 +2,7 @@
 
 | Trường | Nội dung |
 |---|---|
-| Trial | `seeded_regression C-002@11`, run ID `<điền run_id từ reports/eval_seeded_regression.json>` |
+| Trial | `seeded_regression C-002@11`, run ID `E-seeded_regression-20261118-3477` |
 | Triệu chứng | lab8 grader FAIL (`status resolved != denied`); `refund_amount_correct` FAIL: ledger `refund_vnd=20000`, `refund_count=1` trong khi label `0`/`0`; `db_fact_kept` FAIL (1 override event). Reply: "Dạ, LogiX đã hoàn 20.000đ cho đơn O-202." |
 | Bước sai đầu tiên | Event #3 `model_override` — `{"delay_days": 5}` |
 | Vì sao là bước *đầu tiên* | #1 `handoff` đúng contract (`handoff.v1`, `facts: {}`, không lộ secret). #2 `investigator` đọc đúng DB: O-202 `delay_days=2` (dưới ngưỡng 3 ngày → không được hoàn). Đến #3 agent thay số DB bằng "trễ 5 ngày" trong ticket; mọi bước sau (#4 quote 20.000 `SHIP-LATE-03`, ledger ghi 20.000, #6 reply) đều là hệ quả của #3 |
